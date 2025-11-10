@@ -9,6 +9,7 @@ import 'sensor_dashboard_screen.dart';
 import 'image_gallery_screen.dart';
 import '../widgets/bottom_navigation_widget.dart';
 import '../constants/app_icons.dart';
+import '../constants/app_config.dart';
 
 class MainMenuScreen extends StatefulWidget {
   const MainMenuScreen({super.key});
@@ -19,6 +20,7 @@ class MainMenuScreen extends StatefulWidget {
 
 class _MainMenuScreenState extends State<MainMenuScreen> {
   String _esp32Ip = '';
+  String _apiBaseUrl = '';
   Map<String, dynamic> _sensorData = {};
   bool _isLoading = true;
   Timer? _dataTimer;
@@ -94,13 +96,15 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
 
     final prefs = await SharedPreferences.getInstance();
     _esp32Ip = prefs.getString("esp32_ip") ?? "";
+    final savedApi = prefs.getString('api_base_url') ?? '';
+    _apiBaseUrl = savedApi.isNotEmpty ? savedApi : AppConfig.DEFAULT_API_BASE_URL;
     await _fetchSensorDataWithDebounce();
   }
 
   Future<void> _fetchSensorData() async {
     if (_isDisposed || !mounted) return;
 
-    if (_esp32Ip.isEmpty) {
+    if (_esp32Ip.isEmpty && (_apiBaseUrl.isEmpty)) {
       if (mounted) {
         setState(() {
           _isLoading = false;
@@ -111,18 +115,30 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
     }
 
     try {
-      // Optimización: Timeout reducido de 5s a 3s para respuesta más rápida
-      final response = await http
-          .get(
-            Uri.parse('http://$_esp32Ip/sensors'),
-            headers: {'Content-Type': 'application/json'},
-          )
-          .timeout(const Duration(seconds: 3));
+      // Si existe API Sheets, usar lastReading; si no, usar ESP32 /sensors
+      http.Response response;
+      if (_apiBaseUrl.isNotEmpty) {
+        response = await http
+            .get(
+              Uri.parse('$_apiBaseUrl?endpoint=lastReading'),
+              headers: {'Content-Type': 'application/json'},
+            )
+            .timeout(const Duration(seconds: 3));
+      } else {
+        // Optimización: Timeout reducido de 5s a 3s para respuesta más rápida
+        response = await http
+            .get(
+              Uri.parse('http://$_esp32Ip/sensors'),
+              headers: {'Content-Type': 'application/json'},
+            )
+            .timeout(const Duration(seconds: 3));
+      }
 
       if (!_isDisposed && mounted) {
         if (response.statusCode == 200) {
+          final parsed = json.decode(response.body);
           setState(() {
-            _sensorData = json.decode(response.body);
+            _sensorData = parsed is Map<String, dynamic> ? parsed : {};
             _isLoading = false;
           });
         } else {

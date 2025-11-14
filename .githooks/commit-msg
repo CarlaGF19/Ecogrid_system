@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+
+# Validación simple de Conventional Commits
+# Formato esperado: type(scope): resumen
+# Tipos permitidos: feat, fix, refactor, style, perf, docs, chore, test, build, ci, revert
+
+MSG_FILE="$1"
+FIRST_LINE="$(head -n1 "$MSG_FILE" | tr -d '\r')"
+
+# scope opcional: letras, números, puntos, guiones y guiones bajos
+PATTERN='^(feat|fix|refactor|style|perf|docs|chore|test|build|ci|revert)(\([a-z0-9._-]+\))?(!)?: [^[:space:]].*'
+
+if ! echo "$FIRST_LINE" | grep -Eq "$PATTERN"; then
+  echo "\n✋ Mensaje de commit no cumple la convención."
+  echo "Formato: type(scope): resumen"
+  echo "Tipos: feat | fix | refactor | style | perf | docs | chore | test | build | ci | revert"
+  echo "Ejemplos:"
+  echo "  feat(gallery): mostrar hora local HH:MM"
+  echo "  refactor(about): aplicar paleta MainMenu con AppColors"
+  echo "  chore(constants): añadir AppColors\n"
+  exit 1
+fi
+
+exit 0

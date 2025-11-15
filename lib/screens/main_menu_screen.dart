@@ -759,25 +759,87 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
 } // <-- Fin de _MainMenuScreenState
 
 // ======================================================
-//  NUEVA PANTALLA AÑADIDA: PDFPage
-// ======================================================
+//  NUEVA PANTALLA AÑADIDA: PDFPage 
+// ====================================================== 
 
-class PDFPage extends StatefulWidget {
-  final String apiBaseUrl; // Recibe la URL de la API
+class PDFPage extends StatefulWidget { 
+  final String apiBaseUrl; // Recibe la URL de la API 
 
-  const PDFPage({super.key, required this.apiBaseUrl});
+  const PDFPage({super.key, required this.apiBaseUrl}); 
+
+  static const String routeName = '/pdf-page';
+  static void open(BuildContext context, String apiBaseUrl) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => PDFPage(apiBaseUrl: apiBaseUrl),
+        settings: const RouteSettings(name: routeName),
+      ),
+    );
+  }
 
   @override
   State<PDFPage> createState() => _PDFPageState();
 }
 
 class _PDFPageState extends State<PDFPage> {
-  DateTime? fechaInicio;
-  DateTime? fechaFin;
-  bool cargando = false;
-  String? error;
+  DateTime? fechaInicio; 
+  DateTime? fechaFin; 
+  bool cargando = false; 
+  String? error; 
 
-  Future<void> seleccionarFechaInicio() async {
+  bool get _fechasValidas {
+    if (fechaInicio == null || fechaFin == null) return false;
+    return !fechaInicio!.isAfter(fechaFin!);
+  }
+
+  ButtonStyle _buttonStylePrimary(BuildContext context) {
+    const Color primary = Color(0xFF009E73);
+    return ButtonStyle(
+      minimumSize: MaterialStateProperty.all(const Size(double.infinity, 50)),
+      backgroundColor: MaterialStateProperty.resolveWith<Color>((states) {
+        if (states.contains(MaterialState.disabled)) {
+          return primary.withOpacity(0.6);
+        }
+        if (states.contains(MaterialState.pressed)) {
+          return primary.withOpacity(0.9);
+        }
+        return primary;
+      }),
+      foregroundColor: MaterialStateProperty.all(Colors.white),
+      shape: MaterialStateProperty.all(
+        RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      ),
+      shadowColor: MaterialStateProperty.all(const Color.fromRGBO(0, 160, 120, 0.15)),
+      elevation: MaterialStateProperty.all(3),
+      overlayColor: MaterialStateProperty.all(Colors.white.withOpacity(0.06)),
+    );
+  }
+
+  ButtonStyle _buttonStyleSecondary(BuildContext context) {
+    const Color secondary = Color(0xFF00B7B0);
+    return ButtonStyle(
+      minimumSize: MaterialStateProperty.all(const Size(double.infinity, 50)),
+      backgroundColor: MaterialStateProperty.resolveWith<Color>((states) {
+        if (states.contains(MaterialState.disabled)) {
+          return secondary.withOpacity(0.6);
+        }
+        if (states.contains(MaterialState.pressed)) {
+          return secondary.withOpacity(0.9);
+        }
+        return secondary;
+      }),
+      foregroundColor: MaterialStateProperty.all(Colors.white),
+      shape: MaterialStateProperty.all(
+        RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      ),
+      shadowColor: MaterialStateProperty.all(const Color.fromRGBO(0, 160, 120, 0.15)),
+      elevation: MaterialStateProperty.all(3),
+      overlayColor: MaterialStateProperty.all(Colors.white.withOpacity(0.06)),
+    );
+  }
+
+  Future<void> seleccionarFechaInicio() async { 
     final picked = await showDatePicker(
       context: context,
       initialDate: fechaInicio ?? DateTime.now(),
@@ -787,7 +849,7 @@ class _PDFPageState extends State<PDFPage> {
     if (picked != null) setState(() => fechaInicio = picked);
   }
 
-  Future<void> seleccionarFechaFin() async {
+  Future<void> seleccionarFechaFin() async { 
     final picked = await showDatePicker(
       context: context,
       initialDate: fechaFin ?? DateTime.now(),
@@ -797,17 +859,11 @@ class _PDFPageState extends State<PDFPage> {
     if (picked != null) setState(() => fechaFin = picked);
   }
 
-  Future<void> generarPDF() async {
-    if (fechaInicio == null || fechaFin == null) {
-      setState(() => error = "Seleccione ambas fechas primero");
-      return;
-    }
-
-    if (fechaInicio!.isAfter(fechaFin!)) {
-      setState(
-        () => error =
-            "La fecha de inicio no puede ser posterior a la fecha de fin",
-      );
+  Future<void> generarPDF() async { 
+    if (!_fechasValidas) {
+      setState(() => error = fechaInicio == null || fechaFin == null
+          ? "Seleccione ambas fechas primero"
+          : "La fecha de inicio no puede ser posterior a la fecha de fin");
       return;
     }
 
@@ -945,93 +1001,120 @@ class _PDFPageState extends State<PDFPage> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    // Usamos un tema que coincida con tu app
-    final theme = Theme.of(context);
+  @override 
+  Widget build(BuildContext context) { 
+    // Usamos un tema que coincida con tu app 
+    final theme = Theme.of(context); 
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Generar Reporte PDF"),
-        backgroundColor: const Color(0xFF004C3F), // Color de tu app
-        elevation: 0,
+        title: const Text(
+          "Generar Reporte PDF",
+          style: TextStyle(fontWeight: FontWeight.w600, color: Color(0xFF009E73)),
+        ),
+        backgroundColor: Colors.white,
+        elevation: 2,
+        iconTheme: const IconThemeData(color: Color(0xFF00E0A6)),
       ),
-      // Usamos el color de fondo de tu MainMenuScreen
-      backgroundColor: const Color.fromARGB(255, 255, 255, 255),
-      body: Center(
-        child: cargando
-            ? const CircularProgressIndicator()
-            : Padding(
-                padding: const EdgeInsets.all(24.0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    ElevatedButton.icon(
-                      icon: const Icon(Icons.calendar_today),
-                      onPressed: seleccionarFechaInicio,
-                      label: Text(
-                        fechaInicio == null
-                            ? "Seleccionar fecha inicio"
-                            : "Inicio: ${fechaInicio!.toLocal().toIso8601String().split('T')[0]}",
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(
-                          0xFF009E73,
-                        ), // Color de tu app
-                        foregroundColor: Colors.white,
-                        minimumSize: const Size(double.infinity, 50),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    ElevatedButton.icon(
-                      icon: const Icon(Icons.calendar_today),
-                      onPressed: seleccionarFechaFin,
-                      label: Text(
-                        fechaFin == null
-                            ? "Seleccionar fecha fin"
-                            : "Fin: ${fechaFin!.toLocal().toIso8601String().split('T')[0]}",
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(
-                          0xFF009E73,
-                        ), // Color de tu app
-                        foregroundColor: Colors.white,
-                        minimumSize: const Size(double.infinity, 50),
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    ElevatedButton.icon(
-                      onPressed: generarPDF,
-                      icon: const Icon(
-                        Icons.picture_as_pdf,
-                        color: Colors.white,
-                      ),
-                      label: const Text(
-                        "📄 Descargar Reporte",
-                        style: TextStyle(color: Colors.white),
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(
-                          0xFF00B7B0,
-                        ), // Color de tu app
-                        minimumSize: const Size(double.infinity, 50),
-                      ),
-                    ),
-                    if (error != null) ...[
-                      const SizedBox(height: 20),
-                      Text(
-                        error!,
-                        style: const TextStyle(
-                          color: Colors.redAccent,
-                          fontSize: 16,
+      backgroundColor: Colors.white,
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final bool isSmall = constraints.maxWidth < 480;
+          final EdgeInsets screenPad = EdgeInsets.all(isSmall ? 24 : 32);
+          return Center(
+            child: cargando
+                ? const CircularProgressIndicator()
+                : Padding(
+                    padding: screenPad,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        // Panel glassmorphism para filtros
+                        RepaintBoundary(
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(16),
+                            child: BackdropFilter(
+                              filter: ui.ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                              child: Container(
+                                width: double.infinity,
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: isSmall ? 16 : 20,
+                                  vertical: isSmall ? 16 : 20,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.25),
+                                  borderRadius: BorderRadius.circular(16),
+                                  border: Border.all(color: const Color(0x80009E73)),
+                                  boxShadow: const [
+                                    BoxShadow(
+                                      color: Color.fromRGBO(0, 160, 120, 0.15),
+                                      blurRadius: 8,
+                                      offset: Offset(0, 2),
+                                    ),
+                                  ],
+                                  gradient: const LinearGradient(
+                                    begin: Alignment.topCenter,
+                                    end: Alignment.bottomCenter,
+                                    colors: [
+                                      Color.fromRGBO(255, 255, 255, 0.35),
+                                      Color.fromRGBO(255, 255, 255, 0.15),
+                                    ],
+                                  ),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                                  children: [
+                                    ElevatedButton.icon(
+                                      icon: const Icon(Icons.calendar_today),
+                                      onPressed: seleccionarFechaInicio,
+                                      label: Text(
+                                        fechaInicio == null
+                                            ? "Seleccionar fecha inicio"
+                                            : "Inicio: ${fechaInicio!.toLocal().toIso8601String().split('T')[0]}",
+                                      ),
+                                      style: _buttonStylePrimary(context),
+                                    ),
+                                    const SizedBox(height: 16),
+                                    ElevatedButton.icon(
+                                      icon: const Icon(Icons.calendar_today),
+                                      onPressed: seleccionarFechaFin,
+                                      label: Text(
+                                        fechaFin == null
+                                            ? "Seleccionar fecha fin"
+                                            : "Fin: ${fechaFin!.toLocal().toIso8601String().split('T')[0]}",
+                                      ),
+                                      style: _buttonStylePrimary(context),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
                         ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
-                  ],
-                ),
-              ),
+                        const SizedBox(height: 24),
+                        ElevatedButton.icon(
+                          onPressed: _fechasValidas ? generarPDF : null,
+                          icon: const Icon(Icons.picture_as_pdf, color: Colors.white),
+                          label: const Text("📄 Descargar Reporte", style: TextStyle(color: Colors.white)),
+                          style: _buttonStyleSecondary(context),
+                        ),
+                        if (error != null) ...[
+                          const SizedBox(height: 20),
+                          Semantics(
+                            label: 'Mensaje de error',
+                            child: Text(
+                              error!,
+                              style: const TextStyle(color: Colors.redAccent, fontSize: 16),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+          );
+        },
       ),
-    );
-  }
+    ); 
+  } 
 }

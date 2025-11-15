@@ -76,15 +76,34 @@ class _SensorDetailPageState extends State<SensorDetailPage> {
     }
 
     try {
+      debugPrint("=== INICIANDO ACTUALIZACIÓN DE DATOS ===");
+      debugPrint("API Base URL: $apiBaseUrl");
+      debugPrint("ESP32 IP: ${widget.esp32Ip}");
+      debugPrint("Tipo sensor: ${widget.tipo}");
+
       if (apiBaseUrl != null && apiBaseUrl!.isNotEmpty) {
+        debugPrint("MODO: API Google Sheets");
         await Future.wait([_fetchApiHistory(), _fetchApiLastReading()]);
       } else {
         if (widget.esp32Ip != null && widget.esp32Ip!.isNotEmpty) {
+          debugPrint("MODO: ESP32 Directo");
           await _fetchEsp32Reading();
+        } else {
+          debugPrint("ERROR: No hay configuración de conexión");
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('No hay conexión configurada. Configure IP o API URL.')),
+            );
+          }
         }
       }
     } catch (e) {
       debugPrint("Error actualizando datos: $e");
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error de conexión: $e')),
+        );
+      }
     }
 
     if (isManualRefresh && mounted) {
@@ -95,6 +114,7 @@ class _SensorDetailPageState extends State<SensorDetailPage> {
   // Obtiene el historial para el GRÁFICO (endpoint=history)
   Future<void> _fetchApiHistory() async {
     try {
+      debugPrint("=== FETCH API HISTORY ===");
       final List<String> tipos = widget.tipo == 'humedad'
           ? <String>['humedadAmbiente', 'humedad']
           : <String>[widget.tipo];
@@ -103,29 +123,42 @@ class _SensorDetailPageState extends State<SensorDetailPage> {
       for (final t in tipos) {
         final uri = Uri.parse('$apiBaseUrl?endpoint=history&type=$t&limit=15');
         debugPrint('Solicitando historial: $uri');
-        final response = await http
-            .get(uri)
-            .timeout(const Duration(seconds: 10));
-        if (response.statusCode == 200) {
-          final data = json.decode(response.body);
-          final List<dynamic> points = (data['points'] ?? []) as List<dynamic>;
-          if (points.isNotEmpty) {
-            serie = points
-                .map((p) => ((p['value'] ?? 0) as num).toDouble())
-                .where((v) => v.isFinite)
-                .toList();
-            if (widget.tipo == 'humedad') {
-              debugPrint(
-                'Historial humedad puntos=${serie.length}, muestra=${serie.take(3).toList()}',
-              );
+        
+        try {
+          final response = await http
+              .get(uri)
+              .timeout(const Duration(seconds: 10));
+          
+          debugPrint('Respuesta historial: Status ${response.statusCode}');
+          debugPrint('Body: ${response.body.substring(0, response.body.length > 200 ? 200 : response.body.length)}');
+          
+          if (response.statusCode == 200) {
+            final data = json.decode(response.body);
+            debugPrint('Datos decodificados: $data');
+            
+            final List<dynamic> points = (data['points'] ?? []) as List<dynamic>;
+            debugPrint('Puntos encontrados: ${points.length}');
+            
+            if (points.isNotEmpty) {
+              serie = points
+                  .map((p) => ((p['value'] ?? 0) as num).toDouble())
+                  .where((v) => v.isFinite)
+                  .toList();
+              debugPrint('Serie generada: $serie');
+              break;
+            } else {
+              debugPrint('ADVERTENCIA: No hay puntos de datos para $t');
             }
-            break;
+          } else {
+            debugPrint('ERROR: Historial $t respondió ${response.statusCode}');
           }
-        } else {
-          debugPrint('Historial $t respondió ${response.statusCode}');
+        } catch (e) {
+          debugPrint('ERROR en solicitud $t: $e');
         }
       }
 
+      debugPrint('Valores finales del gráfico: $serie');
+      
       if (mounted) {
         setState(() {
           valores = serie;
@@ -185,11 +218,21 @@ class _SensorDetailPageState extends State<SensorDetailPage> {
   // Lógica original para MODO ESP32
   Future<void> _fetchEsp32Reading() async {
     try {
+      debugPrint("=== FETCH ESP32 DIRECTO ===");
+      final url = "${widget.esp32Ip}/${widget.tipo}";
+      debugPrint('Solicitando a ESP32: $url');
+      
       final response = await http.get(
-        Uri.parse("${widget.esp32Ip}/${widget.tipo}"),
-      );
+        Uri.parse(url),
+      ).timeout(const Duration(seconds: 10));
+      
+      debugPrint('Respuesta ESP32: Status ${response.statusCode}');
+      debugPrint('Body: ${response.body}');
+      
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
+        debugPrint('Datos ESP32 decodificados: $data');
+        
         double valor = 0;
         switch (widget.tipo) {
           case "temperatura":
@@ -209,6 +252,9 @@ class _SensorDetailPageState extends State<SensorDetailPage> {
             valor = (data["uv"] ?? 0).toDouble();
             break;
         }
+        
+        debugPrint('Valor extraído: $valor');
+        
         if (mounted) {
           setState(() {
             _ultimoValor = valor; // Actualiza el valor
@@ -217,10 +263,19 @@ class _SensorDetailPageState extends State<SensorDetailPage> {
             valores.add(valor); // Actualiza el gráfico
             if (valores.length > 15) valores.removeAt(0);
           });
+          
+          debugPrint('Estado actualizado - valores: $valores');
         }
+      } else {
+        debugPrint('ERROR: ESP32 respondió con status ${response.statusCode}');
       }
     } catch (e) {
       debugPrint("Error en _fetchEsp32Reading: $e");
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error conectando a ESP32: $e')),
+        );
+      }
     }
   }
 
@@ -329,7 +384,21 @@ class _SensorDetailPageState extends State<SensorDetailPage> {
     return SizedBox(
       height: 200, // Altura fija (aprox 1/4 de pantalla)
       child: valores.isEmpty
-          ? const Center(child: Text("Cargando gráfico..."))
+          ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.show_chart, size: 48, color: Colors.grey),
+                  const SizedBox(height: 8),
+                  const Text("Sin datos para mostrar"),
+                  const SizedBox(height: 4),
+                  Text(
+                    "Esperando conexión...",
+                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                  ),
+                ],
+              ),
+            )
           : LineChart(
               LineChartData(
                 gridData: const FlGridData(show: true),

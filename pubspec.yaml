@@ -26,6 +26,7 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^5.0.0
+  flutter_launcher_icons: ^0.13.1
 
 flutter:
   uses-material-design: true
@@ -39,3 +40,17 @@ flutter:
     - assets/images/sensor_dashboard/s_ph.png
     - assets/images/sensor_dashboard/s_tds.png
     - assets/images/sensor_dashboard/s_uv.png
+
+# Configuración de flutter_launcher_icons
+flutter_launcher_icons:
+  android: true
+  ios: true
+  web: true
+  windows: true
+  macos: true
+  image_path: "assets/icons/icono_app.jpeg"
+  adaptive_icon_background: "#FFFFFF"
+  adaptive_icon_foreground: "assets/icons/icono_app.jpeg"
+  min_sdk_android: 21
+  remove_alpha_ios: true
+  background_color_ios: "#FFFFFF"

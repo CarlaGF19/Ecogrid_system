@@ -4,6 +4,9 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:async';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../services/connection_manager.dart';
+import '../services/lifecycle_manager.dart';
+import '../components/connection_status.dart';
 
 class SensorDetailPage extends StatefulWidget {
   final String? esp32Ip;
@@ -21,7 +24,7 @@ class SensorDetailPage extends StatefulWidget {
   State<SensorDetailPage> createState() => _SensorDetailPageState();
 }
 
-class _SensorDetailPageState extends State<SensorDetailPage> {
+class _SensorDetailPageState extends State<SensorDetailPage> with WidgetsBindingObserver {
   // --- VARIABLES DE ESTADO ---
   List<double> valores = []; // Para el gráfico
   Timer? timer;
@@ -35,24 +38,27 @@ class _SensorDetailPageState extends State<SensorDetailPage> {
   String _ultimaFecha = "";
   String _ultimaHora = "";
 
+  // Connection Manager for automatic updates
+  late ConnectionManager _connectionManager;
+  DateTime? _lastAutoUpdate;
+
   final String _defaultApiUrl =
       "https://script.google.com/macros/s/AKfycbygUivdTGdLb_2p7f80TAJiwm_elb7FfXvyIJn_ID-BYhedUWjOQs1Sqk2rmubtn80N/exec";
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _initializeConnectionManager();
     _loadApiBaseUrl().then(
       (_) => _actualizarDatos(),
     ); // Llama a la nueva función
-    // Aumentamos el timer a 10s para no saturar
-    timer = Timer.periodic(
-      const Duration(seconds: 10),
-      (_) => _actualizarDatos(),
-    );
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _connectionManager.dispose();
     timer?.cancel();
     super.dispose();
   }
@@ -63,10 +69,97 @@ class _SensorDetailPageState extends State<SensorDetailPage> {
     apiBaseUrl = (saved != null && saved.isNotEmpty) ? saved : _defaultApiUrl;
   }
 
+  // Initialize connection manager for automatic updates
+  Future<void> _initializeConnectionManager() async {
+    await _loadApiBaseUrl();
+    
+    _connectionManager = ConnectionManager();
+    
+    // Listen to connection status changes
+    _connectionManager.statusStream.listen((status) {
+      if (mounted) {
+        setState(() {
+          // Update UI based on connection status if needed
+        });
+      }
+    });
+    
+    // Listen to data updates
+    _connectionManager.dataStream.listen((data) {
+      _handleAutomaticDataUpdate(data);
+    });
+    
+    // Initialize connection
+    await _connectionManager.initialize(
+      apiBaseUrl: apiBaseUrl,
+      esp32Ip: widget.esp32Ip,
+      sensorType: widget.tipo,
+      updateInterval: const Duration(seconds: 58),
+      respectLifecycle: true, // Enable battery optimization
+    );
+  }
+
+  // Handle automatic data updates from connection manager
+  void _handleAutomaticDataUpdate(Map<String, dynamic> data) {
+    debugPrint('=== AUTOMATIC DATA UPDATE RECEIVED ===');
+    debugPrint('Data: $data');
+    
+    setState(() {
+      _lastAutoUpdate = DateTime.now();
+      
+      // Update sensor values based on data source
+      if (data['source'] == 'esp32') {
+        // ESP32 direct data
+        double valor = (data['value'] ?? 0).toDouble();
+        _ultimoValor = valor;
+        _ultimaFecha = "";
+        _ultimaHora = "";
+        
+        // Update chart data
+        valores.add(valor);
+        if (valores.length > 15) valores.removeAt(0);
+      } else {
+        // API data (Google Sheets)
+        _updateSensorValuesFromApi(data);
+      }
+    });
+  }
+
+  // App lifecycle handling for battery optimization
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    switch (state) {
+      case AppLifecycleState.resumed:
+        debugPrint('App resumed - restarting automatic updates');
+        // Notify lifecycle manager
+        LifecycleManager().onAppResumed();
+        // Refresh connection
+        _connectionManager.refresh();
+        break;
+      case AppLifecycleState.paused:
+        debugPrint('App paused - reducing update frequency');
+        // Notify lifecycle manager
+        LifecycleManager().onAppPaused();
+        break;
+      case AppLifecycleState.inactive:
+      case AppLifecycleState.detached:
+      case AppLifecycleState.hidden:
+        // Handle other states if needed
+        break;
+    }
+  }
+
   // --- LÓGICA DE ACTUALIZACIÓN DE DATOS ---
 
   // Nueva función que se encarga de actualizar todo
   Future<void> _actualizarDatos({bool isManualRefresh = false}) async {
+    // Use connection manager for automatic updates, fallback to manual for compatibility
+    if (!isManualRefresh && _connectionManager.isConnected) {
+      // Automatic updates are handled by connection manager
+      return;
+    }
+    
+    // Manual refresh or fallback logic
     // Si ya está actualizando, no hace nada
     if (_isRefreshing) return;
 
@@ -215,6 +308,37 @@ class _SensorDetailPageState extends State<SensorDetailPage> {
     }
   }
 
+  // Update sensor values from API data
+  void _updateSensorValuesFromApi(Map<String, dynamic> data) {
+    if (data['fecha'] == null) return;
+    
+    double tempValor = 0.0;
+    switch (widget.tipo) {
+      case "temperatura":
+        tempValor = (data["temperatura"] ?? 0).toDouble();
+        break;
+      case "humedad":
+        tempValor = (data["humedadAmbiente"] ?? 0).toDouble();
+        break;
+      case "humedadSuelo":
+        tempValor = (data["humedadSuelo"] ?? 0).toDouble();
+        break;
+      case "ph":
+        tempValor = (data["ph"] ?? 0).toDouble();
+        break;
+      case "tds":
+        tempValor = (data["tds"] ?? 0).toDouble();
+        break;
+      case "uv":
+        tempValor = (data["uv"] ?? 0).toDouble();
+        break;
+    }
+    
+    _ultimoValor = tempValor;
+    _ultimaFecha = data['fecha'] ?? "";
+    _ultimaHora = data['hora'] ?? "";
+  }
+
   // Lógica original para MODO ESP32
   Future<void> _fetchEsp32Reading() async {
     try {
@@ -296,6 +420,22 @@ class _SensorDetailPageState extends State<SensorDetailPage> {
     }
   }
 
+  // Formatea el tiempo transcurrido para mostrar en la UI
+  String _formatTimeAgo(DateTime time) {
+    final now = DateTime.now();
+    final difference = now.difference(time);
+    
+    if (difference.inDays > 0) {
+      return '${difference.inDays}d ${difference.inHours % 24}h';
+    } else if (difference.inHours > 0) {
+      return '${difference.inHours}h ${difference.inMinutes % 60}m';
+    } else if (difference.inMinutes > 0) {
+      return '${difference.inMinutes}m ${difference.inSeconds % 60}s';
+    } else {
+      return '${difference.inSeconds}s';
+    }
+  }
+
   // --- CONSTRUCCIÓN DE LA INTERFAZ (WIDGETS) ---
 
   @override
@@ -303,7 +443,16 @@ class _SensorDetailPageState extends State<SensorDetailPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.titulo),
-        // No hay botón de PDF en actions
+        actions: [
+          // Connection status indicator
+          Padding(
+            padding: const EdgeInsets.only(right: 16.0),
+            child: ConnectionStatusIndicator(
+              connectionManager: _connectionManager,
+              onRefresh: () => _actualizarDatos(isManualRefresh: true),
+            ),
+          ),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),
@@ -360,7 +509,7 @@ class _SensorDetailPageState extends State<SensorDetailPage> {
             ),
             const SizedBox(height: 10),
             const Divider(),
-            // Muestra fecha y hora solo si las tenemos (Modo API)
+            // Muestra fecha y hora con estado de actualización automática
             if (_ultimaFecha.isNotEmpty)
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -371,6 +520,8 @@ class _SensorDetailPageState extends State<SensorDetailPage> {
               )
             else if (_isRefreshing)
               Text("Buscando datos...")
+            else if (_lastAutoUpdate != null)
+              Text("Auto-actualizado: ${_formatTimeAgo(_lastAutoUpdate!)}")
             else
               Text("Actualizado en tiempo real"),
           ],
@@ -426,7 +577,7 @@ class _SensorDetailPageState extends State<SensorDetailPage> {
                     barWidth: 3,
                     belowBarData: BarAreaData(
                       show: true,
-                      color: Colors.green.withOpacity(0.2),
+                      color: Colors.green.withValues(alpha: 0.2),
                     ),
                     dotData: const FlDotData(show: true),
                     spots: [
@@ -459,7 +610,14 @@ class _SensorDetailPageState extends State<SensorDetailPage> {
         label: const Text("ACTUALIZAR"),
         onPressed: _isRefreshing
             ? null
-            : () => _actualizarDatos(isManualRefresh: true),
+            : () async {
+                setState(() => _isRefreshing = true);
+                await _connectionManager.refresh();
+                await _actualizarDatos(isManualRefresh: true);
+                if (mounted) {
+                  setState(() => _isRefreshing = false);
+                }
+              },
         style: ElevatedButton.styleFrom(
           padding: const EdgeInsets.symmetric(vertical: 16),
         ),

@@ -10,7 +10,7 @@ import 'package:pdf/pdf.dart';
 // import 'package:printing/printing.dart'; // <--- ELIMINADO (ya no se usa)
 
 // --- NUEVAS IMPORTACIONES REQUERIDAS PARA PDFPage ---
-import 'package:flutter/foundation.dart' show kIsWeb;
+// kIsWeb no usado aquí; detección via módulo platform_detector
 import 'package:dio/dio.dart';
 import '../utils/pdf_saver.dart';
 import '../utils/platform_detector.dart' as platform;
@@ -843,55 +843,7 @@ class _PDFPageState extends State<PDFPage> {
     return !fechaInicio!.isAfter(fechaFin!);
   }
 
-  ButtonStyle _buttonStylePrimary(BuildContext context) {
-    const Color primary = Color(0xFF009E73);
-    return ButtonStyle(
-      minimumSize: MaterialStateProperty.all(const Size(0, 44)),
-      backgroundColor: MaterialStateProperty.resolveWith<Color>((states) {
-        if (states.contains(MaterialState.disabled)) {
-          return primary.withOpacity(0.6);
-        }
-        if (states.contains(MaterialState.pressed)) {
-          return primary.withOpacity(0.9);
-        }
-        return primary;
-      }),
-      foregroundColor: MaterialStateProperty.all(Colors.white),
-      shape: MaterialStateProperty.all(
-        RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      ),
-      shadowColor: MaterialStateProperty.all(
-        const Color.fromRGBO(0, 160, 120, 0.15),
-      ),
-      elevation: MaterialStateProperty.all(3),
-      overlayColor: MaterialStateProperty.all(Colors.white.withOpacity(0.06)),
-    );
-  }
-
-  ButtonStyle _buttonStyleSecondary(BuildContext context) {
-    const Color secondary = Color(0xFF00B7B0);
-    return ButtonStyle(
-      minimumSize: MaterialStateProperty.all(const Size(0, 44)),
-      backgroundColor: MaterialStateProperty.resolveWith<Color>((states) {
-        if (states.contains(MaterialState.disabled)) {
-          return secondary.withOpacity(0.6);
-        }
-        if (states.contains(MaterialState.pressed)) {
-          return secondary.withOpacity(0.9);
-        }
-        return secondary;
-      }),
-      foregroundColor: MaterialStateProperty.all(Colors.white),
-      shape: MaterialStateProperty.all(
-        RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      ),
-      shadowColor: MaterialStateProperty.all(
-        const Color.fromRGBO(0, 160, 120, 0.15),
-      ),
-      elevation: MaterialStateProperty.all(3),
-      overlayColor: MaterialStateProperty.all(Colors.white.withOpacity(0.06)),
-    );
-  }
+  // Estilos heredados eliminados; se usa _InteractiveRectButton para renderizado consistente
 
   Widget _blueButton({
     required String label,
@@ -900,6 +852,8 @@ class _PDFPageState extends State<PDFPage> {
     bool enabled = true,
     String? semanticLabel,
     IconData? icon,
+    double textScale = 1.0,
+    EdgeInsets contentPadding = const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
   }) {
     const Color base = Color.fromARGB(255, 109, 220, 175);
     const Color hover = Color(0xFF0F6659);
@@ -919,6 +873,8 @@ class _PDFPageState extends State<PDFPage> {
             semanticLabel: semanticLabel ?? label,
             onTap: onTap,
             icon: icon,
+            textScale: textScale,
+            contentPadding: contentPadding,
           ),
         );
       },
@@ -941,7 +897,7 @@ class _PDFPageState extends State<PDFPage> {
         final paletteAccent = const Color(0xFF63B069);
         final paletteBorder = const Color(0x6698C98D);
         return Dialog(
-          backgroundColor: Colors.white.withOpacity(0.12),
+          backgroundColor: Colors.white.withValues(alpha: 0.12),
           elevation: 0,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
@@ -956,26 +912,28 @@ class _PDFPageState extends State<PDFPage> {
                 headerBackgroundColor: Colors.transparent,
                 headerForegroundColor: palettePrimary,
                 // Encabezado minimalista sin texto ni espaciado adicional
-                dayForegroundColor: MaterialStateProperty.all(Colors.black87),
-                dayOverlayColor: MaterialStateProperty.resolveWith((states) {
-                  if (states.contains(MaterialState.selected)) {
-                    return palettePrimary.withOpacity(0.25);
+                dayForegroundColor: WidgetStatePropertyAll(Colors.black87),
+                dayOverlayColor: WidgetStateProperty.resolveWith((states) {
+                  if (states.contains(WidgetState.selected)) {
+                    return palettePrimary.withValues(alpha: 0.25);
                   }
                   return Colors.transparent;
                 }),
-                dayShape: MaterialStateProperty.all(
+                dayShape: WidgetStatePropertyAll(
                   RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
-                todayForegroundColor: MaterialStateProperty.all(paletteDark),
+                todayForegroundColor: WidgetStatePropertyAll(paletteDark),
                 todayBorder: const BorderSide(
                   color: Color(0xFF98C98D),
                   width: 1,
                 ),
-                rangeSelectionBackgroundColor: paletteAccent.withOpacity(0.20),
-                rangeSelectionOverlayColor: MaterialStateProperty.all(
-                  paletteAccent.withOpacity(0.10),
+                rangeSelectionBackgroundColor: paletteAccent.withValues(
+                  alpha: 0.20,
+                ),
+                rangeSelectionOverlayColor: WidgetStatePropertyAll(
+                  paletteAccent.withValues(alpha: 0.10),
                 ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
@@ -1014,7 +972,7 @@ class _PDFPageState extends State<PDFPage> {
         final paletteAccent = const Color(0xFF63B069);
         final paletteBorder = const Color(0x6698C98D);
         return Dialog(
-          backgroundColor: Colors.white.withOpacity(0.12),
+          backgroundColor: Colors.white.withValues(alpha: 0.12),
           elevation: 0,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
@@ -1029,26 +987,28 @@ class _PDFPageState extends State<PDFPage> {
                 headerBackgroundColor: Colors.transparent,
                 headerForegroundColor: palettePrimary,
                 // Encabezado minimalista sin texto ni padding adicional
-                dayForegroundColor: MaterialStateProperty.all(Colors.black87),
-                dayOverlayColor: MaterialStateProperty.resolveWith((states) {
-                  if (states.contains(MaterialState.selected)) {
-                    return palettePrimary.withOpacity(0.25);
+                dayForegroundColor: WidgetStatePropertyAll(Colors.black87),
+                dayOverlayColor: WidgetStateProperty.resolveWith((states) {
+                  if (states.contains(WidgetState.selected)) {
+                    return palettePrimary.withValues(alpha: 0.25);
                   }
                   return Colors.transparent;
                 }),
-                dayShape: MaterialStateProperty.all(
+                dayShape: WidgetStatePropertyAll(
                   RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
-                todayForegroundColor: MaterialStateProperty.all(paletteDark),
+                todayForegroundColor: WidgetStatePropertyAll(paletteDark),
                 todayBorder: const BorderSide(
                   color: Color(0xFF98C98D),
                   width: 1,
                 ),
-                rangeSelectionBackgroundColor: paletteAccent.withOpacity(0.20),
-                rangeSelectionOverlayColor: MaterialStateProperty.all(
-                  paletteAccent.withOpacity(0.10),
+                rangeSelectionBackgroundColor: paletteAccent.withValues(
+                  alpha: 0.20,
+                ),
+                rangeSelectionOverlayColor: WidgetStatePropertyAll(
+                  paletteAccent.withValues(alpha: 0.10),
                 ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
@@ -1176,7 +1136,7 @@ class _PDFPageState extends State<PDFPage> {
               style: const pw.TextStyle(fontSize: 12),
             ),
             pw.SizedBox(height: 15),
-            pw.Table.fromTextArray(
+            pw.TableHelper.fromTextArray(
               headers: headers,
               data: dataRows,
               headerStyle: pw.TextStyle(
@@ -1210,8 +1170,7 @@ class _PDFPageState extends State<PDFPage> {
 
   @override
   Widget build(BuildContext context) {
-    // Usamos un tema que coincida con tu app
-    final theme = Theme.of(context);
+    // Construcción del scaffold conforme a tema global
 
     return Scaffold(
       appBar: AppBar(
@@ -1236,60 +1195,71 @@ class _PDFPageState extends State<PDFPage> {
                 ? const CircularProgressIndicator()
                 : Padding(
                     padding: screenPad,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            _blueButton(
-                              label: fechaInicio == null
-                                  ? 'Fecha de Inicio'
-                                  : '${fechaInicio!.year.toString().padLeft(4, '0')}-${fechaInicio!.month.toString().padLeft(2, '0')}-${fechaInicio!.day.toString().padLeft(2, '0')}',
-                              onTap: seleccionarFechaInicio,
-                              key: const ValueKey('btn-start-date'),
-                              semanticLabel: 'Seleccionar fecha inicio',
-                              icon: Icons.calendar_today,
-                              enabled: !platform.isAndroidWeb(),
-                            ),
-                            const SizedBox(height: 18),
-                            _blueButton(
-                              label: fechaFin == null
-                                  ? 'Fecha de Fin'
-                                  : '${fechaFin!.year.toString().padLeft(4, '0')}-${fechaFin!.month.toString().padLeft(2, '0')}-${fechaFin!.day.toString().padLeft(2, '0')}',
-                              onTap: seleccionarFechaFin,
-                              key: const ValueKey('btn-end-date'),
-                              semanticLabel: 'Seleccionar fecha fin',
-                              icon: Icons.calendar_today,
-                              enabled: !platform.isAndroidWeb(),
-                            ),
-                            const SizedBox(height: 18),
-                            _blueButton(
-                              label: 'Descargar Reporte',
-                              onTap: _fechasValidas ? generarPDF : null,
-                              key: const ValueKey('btn-download'),
-                              semanticLabel: 'Descargar Reporte',
-                              enabled: _fechasValidas && !platform.isAndroidWeb(),
-                              icon: Icons.picture_as_pdf,
+                    child: SingleChildScrollView(
+                      padding: EdgeInsets.only(
+                        bottom: MediaQuery.of(context).viewPadding.bottom,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              _blueButton(
+                                label: fechaInicio == null
+                                    ? 'Fecha de Inicio'
+                                    : '${fechaInicio!.year.toString().padLeft(4, '0')}-${fechaInicio!.month.toString().padLeft(2, '0')}-${fechaInicio!.day.toString().padLeft(2, '0')}',
+                                onTap: seleccionarFechaInicio,
+                                key: const ValueKey('btn-start-date'),
+                                semanticLabel: 'Seleccionar fecha inicio',
+                                icon: Icons.calendar_today,
+                                enabled: !platform.isAndroidWeb(),
+                              ),
+                              const SizedBox(height: 18),
+                              _blueButton(
+                                label: fechaFin == null
+                                    ? 'Fecha de Fin'
+                                    : '${fechaFin!.year.toString().padLeft(4, '0')}-${fechaFin!.month.toString().padLeft(2, '0')}-${fechaFin!.day.toString().padLeft(2, '0')}',
+                                onTap: seleccionarFechaFin,
+                                key: const ValueKey('btn-end-date'),
+                                semanticLabel: 'Seleccionar fecha fin',
+                                icon: Icons.calendar_today,
+                                enabled: !platform.isAndroidWeb(),
+                              ),
+                              const SizedBox(height: 18),
+                              _blueButton(
+                                label: 'Descargar Reporte',
+                                onTap: _fechasValidas ? generarPDF : null,
+                                key: const ValueKey('btn-download'),
+                                semanticLabel: 'Descargar Reporte',
+                                enabled:
+                                    _fechasValidas && !platform.isAndroidWeb(),
+                                icon: Icons.picture_as_pdf,
+                                textScale: 0.75,
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 4,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          if (error != null) ...[
+                            const SizedBox(height: 20),
+                            Semantics(
+                              label: 'Mensaje de error',
+                              child: Text(
+                                error!,
+                                style: const TextStyle(
+                                  color: Colors.redAccent,
+                                  fontSize: 16,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
                             ),
                           ],
-                        ),
-                        const SizedBox(height: 12),
-                        if (error != null) ...[
-                          const SizedBox(height: 20),
-                          Semantics(
-                            label: 'Mensaje de error',
-                            child: Text(
-                              error!,
-                              style: const TextStyle(
-                                color: Colors.redAccent,
-                                fontSize: 16,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
                         ],
-                      ],
+                      ),
                     ),
                   ),
           );
@@ -1310,6 +1280,8 @@ class _InteractiveRectButton extends StatefulWidget {
   final String semanticLabel;
   final VoidCallback? onTap;
   final IconData? icon;
+  final double textScale;
+  final EdgeInsets contentPadding;
 
   const _InteractiveRectButton({
     super.key,
@@ -1323,6 +1295,11 @@ class _InteractiveRectButton extends StatefulWidget {
     required this.semanticLabel,
     required this.onTap,
     this.icon,
+    this.textScale = 1.0,
+    this.contentPadding = const EdgeInsets.symmetric(
+      horizontal: 12,
+      vertical: 8,
+    ),
   });
 
   @override
@@ -1374,25 +1351,35 @@ class _InteractiveRectButtonState extends State<_InteractiveRectButton> {
               child: AspectRatio(
                 aspectRatio: widget.aspectRatio,
                 child: Center(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if (widget.icon != null) ...[
-                        Icon(widget.icon, color: fg, size: 18),
-                        const SizedBox(width: 8),
-                      ],
-                      Text(
-                        widget.label,
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          fontFamily: 'Roboto',
-                          fontWeight: FontWeight.w500,
-                          fontSize: 16,
-                          color: Colors.white,
+                  child: Padding(
+                    padding: widget.contentPadding,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (widget.icon != null) ...[
+                          Icon(widget.icon, color: fg, size: 18),
+                          const SizedBox(width: 8),
+                        ],
+                        Builder(
+                          builder: (context) {
+                            final scaler = MediaQuery.of(context).textScaler;
+                            final base = 16.0 * widget.textScale;
+                            final fs = scaler.scale(base).clamp(12.0, 18.0);
+                            return Text(
+                              widget.label,
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontFamily: 'Roboto',
+                                fontWeight: FontWeight.w500,
+                                fontSize: fs as double,
+                                color: Colors.white,
+                              ),
+                            );
+                          },
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),

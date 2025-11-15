@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'sensor_detail_page.dart';
 import '../widgets/bottom_navigation_widget.dart';
+import 'dart:ui';
 
 class SensorDashboardScreen extends StatefulWidget {
   final String ip;
@@ -455,8 +456,8 @@ class _SensorCardWithImageState extends State<SensorCardWithImage> {
                             ],
                           ),
                         ),
-                        // Separación proporcional entre imagen y texto
                         SizedBox(height: baseEm * 0.6),
+                        SizedBox(height: baseEm * 0.5),
                         // Título y acción abajo
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.center,
@@ -486,7 +487,16 @@ class _SensorCardWithImageState extends State<SensorCardWithImage> {
                                 textAlign: TextAlign.center,
                               ),
                             ),
-                            SizedBox(height: baseEm * 0.5),
+                            const SizedBox(height: 8),
+                            const Text(
+                              'Show details',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: Color.fromRGBO(255, 255, 255, 0.5),
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
                           ],
                         ),
                       ],

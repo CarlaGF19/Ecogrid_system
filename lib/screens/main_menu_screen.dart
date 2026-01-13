@@ -818,6 +818,7 @@ class _PDFPageState extends State<PDFPage> {
   DateTime? fechaFin;
   bool cargando = false;
   String? error;
+  String _selectedFormat = 'PDF'; // Default format
   static const List<String> _meses = <String>[
     'Enero',
     'Febrero',
@@ -1146,7 +1147,7 @@ class _PDFPageState extends State<PDFPage> {
     if (picked != null) setState(() => fechaFin = picked);
   }
 
-  Future<void> generarPDF() async {
+  Future<void> generarReporte() async {
     if (!_fechasValidas) {
       setState(
         () => error = fechaInicio == null || fechaFin == null
@@ -1159,6 +1160,20 @@ class _PDFPageState extends State<PDFPage> {
     if (platform.isAndroidWeb()) {
       setState(() {
         error = "Esta funcionalidad está restringida en dispositivos Android.";
+      });
+      return;
+    }
+
+    if (_selectedFormat == 'CSV') {
+      // Simulación de descarga CSV
+      setState(() {
+        cargando = true;
+        error = null;
+      });
+      await Future.delayed(const Duration(seconds: 1));
+      setState(() {
+        cargando = false;
+        error = "Formato CSV seleccionado. Descarga iniciada (simulado).";
       });
       return;
     }
@@ -1423,19 +1438,196 @@ class _PDFPageState extends State<PDFPage> {
                                           icon: Icons.calendar_today,
                                           enabled: !platform.isAndroidWeb(),
                                         ),
-                                        _StyledButton(
-                                          label: 'Descargar Reporte',
-                                          onTap: _fechasValidas
-                                              ? generarPDF
-                                              : null,
-                                          key: const ValueKey('btn-download'),
-                                          semanticLabel: 'Descargar Reporte',
-                                          enabled:
-                                              _fechasValidas &&
-                                              !platform.isAndroidWeb(),
-                                          icon: Icons.picture_as_pdf,
-                                        ),
                                       ],
+                                    ),
+
+                                    const SizedBox(height: 24),
+
+                                    // Selector de Formato
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 20,
+                                        vertical: 8,
+                                      ),
+                                      child: Align(
+                                        alignment: Alignment.centerLeft,
+                                        child: Text(
+                                          'Formato de reporte',
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w600,
+                                            color: verdeOscuro,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    Container(
+                                      margin: const EdgeInsets.symmetric(
+                                        horizontal: 16,
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          Expanded(
+                                            child: GestureDetector(
+                                              onTap: () => setState(
+                                                () => _selectedFormat = 'PDF',
+                                              ),
+                                              child: AnimatedContainer(
+                                                duration: const Duration(
+                                                  milliseconds: 200,
+                                                ),
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                      vertical: 12,
+                                                    ),
+                                                decoration: BoxDecoration(
+                                                  color:
+                                                      _selectedFormat == 'PDF'
+                                                      ? verdePrincipal
+                                                      : Colors.white,
+                                                  borderRadius:
+                                                      BorderRadius.circular(8),
+                                                  border: Border.all(
+                                                    color:
+                                                        _selectedFormat == 'PDF'
+                                                        ? verdePrincipal
+                                                        : verdeClaro,
+                                                    width: 1,
+                                                  ),
+                                                ),
+                                                child: Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment.center,
+                                                  children: [
+                                                    Icon(
+                                                      Icons.picture_as_pdf,
+                                                      color:
+                                                          _selectedFormat ==
+                                                              'PDF'
+                                                          ? Colors.white
+                                                          : verdePrincipal,
+                                                      size: 20,
+                                                    ),
+                                                    const SizedBox(width: 8),
+                                                    Text(
+                                                      'PDF',
+                                                      style: TextStyle(
+                                                        color:
+                                                            _selectedFormat ==
+                                                                'PDF'
+                                                            ? Colors.white
+                                                            : verdePrincipal,
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                          const SizedBox(width: 12),
+                                          Expanded(
+                                            child: GestureDetector(
+                                              onTap: () => setState(
+                                                () => _selectedFormat = 'CSV',
+                                              ),
+                                              child: AnimatedContainer(
+                                                duration: const Duration(
+                                                  milliseconds: 200,
+                                                ),
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                      vertical: 12,
+                                                    ),
+                                                decoration: BoxDecoration(
+                                                  color:
+                                                      _selectedFormat == 'CSV'
+                                                      ? verdePrincipal
+                                                      : Colors.white,
+                                                  borderRadius:
+                                                      BorderRadius.circular(8),
+                                                  border: Border.all(
+                                                    color:
+                                                        _selectedFormat == 'CSV'
+                                                        ? verdePrincipal
+                                                        : verdeClaro,
+                                                    width: 1,
+                                                  ),
+                                                ),
+                                                child: Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment.center,
+                                                  children: [
+                                                    Icon(
+                                                      Icons.table_chart,
+                                                      color:
+                                                          _selectedFormat ==
+                                                              'CSV'
+                                                          ? Colors.white
+                                                          : verdePrincipal,
+                                                      size: 20,
+                                                    ),
+                                                    const SizedBox(width: 8),
+                                                    Text(
+                                                      'CSV',
+                                                      style: TextStyle(
+                                                        color:
+                                                            _selectedFormat ==
+                                                                'CSV'
+                                                            ? Colors.white
+                                                            : verdePrincipal,
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.only(
+                                        left: 20,
+                                        top: 8,
+                                        bottom: 24,
+                                      ),
+                                      child: Align(
+                                        alignment: Alignment.centerLeft,
+                                        child: Text(
+                                          _selectedFormat == 'PDF'
+                                              ? 'Ideal para imprimir y compartir'
+                                              : 'Ideal para Excel y análisis',
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color: Colors.grey[600],
+                                            fontStyle: FontStyle.italic,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+
+                                    // Botón CTA Descargar
+                                    Container(
+                                      margin: const EdgeInsets.symmetric(
+                                        horizontal: 16,
+                                      ),
+                                      width: double.infinity,
+                                      child: _StyledButton(
+                                        label: 'Descargar',
+                                        onTap: _fechasValidas
+                                            ? generarReporte
+                                            : null,
+                                        key: const ValueKey('btn-download'),
+                                        semanticLabel: 'Descargar Reporte',
+                                        enabled:
+                                            _fechasValidas &&
+                                            !platform.isAndroidWeb(),
+                                        icon: Icons.download,
+                                      ),
                                     ),
 
                                     if (error != null) ...[

@@ -15,6 +15,9 @@ import 'package:pdf/pdf.dart';
 import 'package:dio/dio.dart';
 import '../utils/pdf_saver.dart';
 import '../utils/platform_detector.dart' as platform;
+import 'package:csv/csv.dart';
+import 'dart:convert' show utf8;
+import '../utils/file_saver.dart';
 // --- FIN NUEVAS IMPORTACIONES ---
 
 import 'sensor_dashboard_screen.dart';
@@ -1147,6 +1150,34 @@ class _PDFPageState extends State<PDFPage> {
     if (picked != null) setState(() => fechaFin = picked);
   }
 
+  Future<void> _generarYCompartirCSV({
+    required List<Map<String, dynamic>> data,
+    required String fileName,
+  }) async {
+    if (data.isEmpty) {
+      throw Exception('No hay datos para exportar');
+    }
+
+    final headers = data.first.keys.toList();
+    final rows = <List<dynamic>>[];
+
+    rows.add(headers);
+
+    for (final item in data) {
+      rows.add(headers.map((h) => item[h]).toList());
+    }
+
+    final csvString = const ListToCsvConverter().convert(rows);
+    final bytes = utf8.encode(csvString);
+
+    await saveFile(
+      // ignore: unnecessary_cast
+      bytes as dynamic,
+      fileName,
+      'text/csv',
+    );
+  }
+
   Future<void> generarReporte() async {
     if (!_fechasValidas) {
       setState(
@@ -1157,23 +1188,10 @@ class _PDFPageState extends State<PDFPage> {
       return;
     }
 
-    if (platform.isAndroidWeb()) {
+    // Validar que la URL base no esté vacía
+    if (widget.apiBaseUrl.isEmpty) {
       setState(() {
-        error = "Esta funcionalidad está restringida en dispositivos Android.";
-      });
-      return;
-    }
-
-    if (_selectedFormat == 'CSV') {
-      // Simulación de descarga CSV
-      setState(() {
-        cargando = true;
-        error = null;
-      });
-      await Future.delayed(const Duration(seconds: 1));
-      setState(() {
-        cargando = false;
-        error = "Formato CSV seleccionado. Descarga iniciada (simulado).";
+        error = "Error: La URL de la API no está configurada.";
       });
       return;
     }
@@ -1183,22 +1201,12 @@ class _PDFPageState extends State<PDFPage> {
       error = null;
     });
 
-    // Validar que la URL base no esté vacía
-    if (widget.apiBaseUrl.isEmpty) {
-      setState(() {
-        error = "Error: La URL de la API no está configurada.";
-        cargando = false;
-      });
-      return;
-    }
-
     try {
       // 1. Formatear fechas
       final fInicio = fechaInicio!.toIso8601String().split('T')[0];
       final fFin = fechaFin!.toIso8601String().split('T')[0];
 
-      // 2. Construir URL y llamar a la API (¡usando widget.apiBaseUrl!)
-      // Usamos el endpoint 'rango1min' que mencionaste
+      // 2. Construir URL y llamar a la API
       final url =
           '${widget.apiBaseUrl}?endpoint=rango1min&fechaInicio=$fInicio&fechaFin=$fFin';
 
@@ -1222,79 +1230,104 @@ class _PDFPageState extends State<PDFPage> {
         return;
       }
 
-      final List<List<String>> datosComoTexto = rawDatos.map((fila) {
-        return List<String>.from(fila.map((celda) => celda.toString()));
-      }).toList();
+      // Procesar datos según el formato seleccionado
+      if (_selectedFormat == 'CSV') {
+        // Convertir rawDatos (List<List>) a List<Map<String, dynamic>>
+        final List<String> headers = List<String>.from(
+          rawDatos[0].map((e) => e.toString()),
+        );
+        final List<Map<String, dynamic>> mappedData = [];
 
-      // 3. Preparar datos para la tabla
-      // Tomamos los encabezados de la fila 0 de la API
-      final List<String> headers = datosComoTexto.isNotEmpty
-          ? datosComoTexto.first
-          : <String>[];
-      // Tomamos el resto de las filas
-      final dataRows = datosComoTexto.length > 1
-          ? datosComoTexto.sublist(1)
-          : <List<String>>[];
+        for (int i = 1; i < rawDatos.length; i++) {
+          final row = rawDatos[i];
+          final Map<String, dynamic> rowMap = {};
+          // Asegurar que no accedemos fuera de rango si la fila está incompleta
+          for (int j = 0; j < headers.length && j < row.length; j++) {
+            rowMap[headers[j]] = row[j];
+          }
+          mappedData.add(rowMap);
+        }
 
-      if (dataRows.isEmpty) {
-        setState(() {
-          error = "No hay datos en el rango seleccionado";
-          cargando = false;
-        });
-        return;
-      }
+        await _generarYCompartirCSV(
+          data: mappedData,
+          fileName: 'Reporte_${fInicio}_a_$fFin.csv',
+        );
+      } else {
+        // Lógica PDF existente
+        final List<List<String>> datosComoTexto = rawDatos.map((fila) {
+          return List<String>.from(fila.map((celda) => celda.toString()));
+        }).toList();
 
-      // 4. Construir el documento PDF
-      final pdf = pw.Document();
-      pdf.addPage(
-        pw.MultiPage(
-          pageFormat: PdfPageFormat.a4,
-          build: (context) => [
-            pw.Center(
-              child: pw.Text(
-                "📄 Reporte de Lecturas",
-                style: pw.TextStyle(
-                  fontSize: 20,
-                  fontWeight: pw.FontWeight.bold,
-                  color: PdfColors.green900,
+        // 3. Preparar datos para la tabla
+        final List<String> headers = datosComoTexto.isNotEmpty
+            ? datosComoTexto.first
+            : <String>[];
+        final dataRows = datosComoTexto.length > 1
+            ? datosComoTexto.sublist(1)
+            : <List<String>>[];
+
+        if (dataRows.isEmpty) {
+          setState(() {
+            error = "No hay datos en el rango seleccionado";
+            cargando = false;
+          });
+          return;
+        }
+
+        // 4. Construir el documento PDF
+        final pdf = pw.Document();
+        pdf.addPage(
+          pw.MultiPage(
+            pageFormat: PdfPageFormat.a4,
+            build: (context) => [
+              pw.Center(
+                child: pw.Text(
+                  "📄 Reporte de Lecturas",
+                  style: pw.TextStyle(
+                    fontSize: 20,
+                    fontWeight: pw.FontWeight.bold,
+                    color: PdfColors.green900,
+                  ),
                 ),
               ),
-            ),
-            pw.SizedBox(height: 10),
-            pw.Text(
-              "Desde: $fInicio    Hasta: $fFin",
-              style: const pw.TextStyle(fontSize: 12),
-            ),
-            pw.SizedBox(height: 15),
-            pw.TableHelper.fromTextArray(
-              headers: headers,
-              data: dataRows,
-              headerStyle: pw.TextStyle(
-                fontWeight: pw.FontWeight.bold,
-                color: PdfColors.white,
+              pw.SizedBox(height: 10),
+              pw.Text(
+                "Desde: $fInicio    Hasta: $fFin",
+                style: const pw.TextStyle(fontSize: 12),
               ),
-              headerDecoration: const pw.BoxDecoration(color: PdfColors.green),
-              cellAlignment: pw.Alignment.centerLeft,
-              border: pw.TableBorder.all(color: PdfColors.grey),
-              cellStyle: const pw.TextStyle(fontSize: 9),
-              // Ajusta los anchos de columna automáticamente
-              columnWidths: {
-                for (var i = 0; i < headers.length; i++)
-                  i: const pw.IntrinsicColumnWidth(),
-              },
-            ),
-          ],
-        ),
-      );
+              pw.SizedBox(height: 15),
+              pw.TableHelper.fromTextArray(
+                headers: headers,
+                data: dataRows,
+                headerStyle: pw.TextStyle(
+                  fontWeight: pw.FontWeight.bold,
+                  color: PdfColors.white,
+                ),
+                headerDecoration: const pw.BoxDecoration(
+                  color: PdfColors.green,
+                ),
+                cellAlignment: pw.Alignment.centerLeft,
+                border: pw.TableBorder.all(color: PdfColors.grey),
+                cellStyle: const pw.TextStyle(fontSize: 9),
+                columnWidths: {
+                  for (var i = 0; i < headers.length; i++)
+                    i: const pw.IntrinsicColumnWidth(),
+                },
+              ),
+            ],
+          ),
+        );
 
-      final bytes = await pdf.save();
-
-      final fileName = 'Reporte_${fInicio}_a_$fFin.pdf';
-      await savePdf(bytes, fileName);
+        final bytes = await pdf.save();
+        final fileName = 'Reporte_${fInicio}_a_$fFin.pdf';
+        await savePdf(bytes, fileName);
+      }
     } catch (e) {
-      setState(() => error = "Error generando PDF: $e");
+      setState(() => error = "Error generando reporte: $e");
     } finally {
-      setState(() => cargando = false);
+      if (mounted) {
+        setState(() => cargando = false);
+      }
     }
   }
 
@@ -1349,62 +1382,6 @@ class _PDFPageState extends State<PDFPage> {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          // Título con estilo verde
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              vertical: 16,
-                              horizontal: 24,
-                            ),
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                colors: [verdePrincipal, verdeOscuro],
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                              ),
-                              borderRadius: BorderRadius.circular(12),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: verdePrincipal.withOpacity(0.3),
-                                  spreadRadius: 1,
-                                  blurRadius: 8,
-                                  offset: const Offset(0, 4),
-                                ),
-                              ],
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.picture_as_pdf,
-                                  color: const Color.fromARGB(
-                                    255,
-                                    255,
-                                    255,
-                                    255,
-                                  ),
-                                  size: 28,
-                                ),
-                                const SizedBox(width: 12),
-                                Text(
-                                  'Generar Reporte PDF',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w700,
-                                    color: const Color.fromARGB(
-                                      255,
-                                      255,
-                                      255,
-                                      255,
-                                    ),
-                                    letterSpacing: 0.5,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-
-                          const SizedBox(height: 24),
-
                           // Contenedor de botones con estilo verde
                           cargando
                               ? const CircularProgressIndicator(

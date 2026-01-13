@@ -125,7 +125,9 @@ class _SensorDashboardScreenState extends State<SensorDashboardScreen> {
             // Eliminada barra de entrada de año/hora
             Expanded(
               child: GridView.count(
-                crossAxisCount: screenWidth < 360 ? 1 : (screenWidth < 768 ? 2 : 3),
+                crossAxisCount: screenWidth < 360
+                    ? 1
+                    : (screenWidth < 768 ? 2 : 3),
                 crossAxisSpacing: 12,
                 mainAxisSpacing: 12,
                 childAspectRatio: aspect,
@@ -648,7 +650,7 @@ class _SensorActionButtonState extends State<SensorActionButton> {
     const Color bgBase = Color(0xFFE6FFF5); // fondo mint claro
     const Color bgHover = Color(0xFF6DFFF5); // hover mint
     final Color bg = _hovering ? bgHover : bgBase;
-    final double em = 14 * MediaQuery.of(context).textScaleFactor;
+    final double em = MediaQuery.textScalerOf(context).scale(14);
     final double btnSize = (em * 3.2).clamp(40.0, 48.0);
     final double iconSize = (btnSize * 0.58).clamp(22.0, 26.0);
 

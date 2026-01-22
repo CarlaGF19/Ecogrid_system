@@ -16,7 +16,7 @@ import 'package:dio/dio.dart';
 import '../utils/pdf_saver.dart';
 import '../utils/platform_detector.dart' as platform;
 import 'package:csv/csv.dart';
-import 'dart:convert' show utf8;
+
 import '../utils/file_saver.dart';
 // --- FIN NUEVAS IMPORTACIONES ---
 
@@ -35,7 +35,9 @@ class MainMenuScreen extends StatefulWidget {
 class _MainMenuScreenState extends State<MainMenuScreen> {
   String _esp32Ip = '';
   String _apiBaseUrl = ''; // <-- Esta URL se pasará a PDFPage
+  // ignore: unused_field
   Map<String, dynamic> _sensorData = {};
+  // ignore: unused_field
   bool _isLoading = true;
   Timer? _dataTimer;
   bool _imageLoaded = false;
@@ -562,7 +564,7 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.15),
+            color: Colors.black.withValues(alpha: 0.15),
             spreadRadius: 2,
             blurRadius: 10,
             offset: const Offset(0, 4),
@@ -686,9 +688,9 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
                     height: 48,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: Colors.white.withOpacity(0.35),
+                      color: Colors.white.withValues(alpha: 0.35),
                       border: Border.all(
-                        color: Colors.white.withOpacity(0.5),
+                        color: Colors.white.withValues(alpha: 0.5),
                         width: 1,
                       ),
                       boxShadow: [
@@ -859,9 +861,11 @@ class _PDFPageState extends State<PDFPage> {
 
   // Estilos heredados eliminados; se usa _InteractiveRectButton para renderizado consistente
 
+  // ignore: unused_element
   Widget _blueButton({
     required String label,
     required VoidCallback? onTap,
+    // ignore: unused_element_parameter
     required Key key,
     bool enabled = true,
     String? semanticLabel,
@@ -909,8 +913,10 @@ class _PDFPageState extends State<PDFPage> {
       confirmText: 'Aceptar',
       initialEntryMode: DatePickerEntryMode.calendarOnly,
       builder: (context, child) {
+        // ignore: unused_local_variable
         final palettePrimary = const Color(0xFF0F6659);
         final paletteDark = const Color(0xFF247E5A);
+        // ignore: unused_local_variable
         final paletteAccent = const Color(0xFF63B069);
         final paletteBorder = const Color(0x6698C98D);
         return Dialog(
@@ -1033,8 +1039,11 @@ class _PDFPageState extends State<PDFPage> {
       confirmText: 'Aceptar',
       initialEntryMode: DatePickerEntryMode.calendarOnly,
       builder: (context, child) {
+        // ignore: unused_local_variable
         final palettePrimary = const Color(0xFF0F6659);
+        // ignore: unused_local_variable
         final paletteDark = const Color(0xFF247E5A);
+        // ignore: unused_local_variable
         final paletteAccent = const Color(0xFF63B069);
         final paletteBorder = const Color(0x6698C98D);
         return Dialog(
@@ -1368,14 +1377,14 @@ class _PDFPageState extends State<PDFPage> {
                         borderRadius: BorderRadius.circular(16),
                         boxShadow: [
                           BoxShadow(
-                            color: verdeSombra.withOpacity(0.15),
+                            color: verdeSombra.withValues(alpha: 0.15),
                             spreadRadius: 2,
                             blurRadius: 15,
                             offset: const Offset(0, 8),
                           ),
                         ],
                         border: Border.all(
-                          color: verdeClaro.withOpacity(0.3),
+                          color: verdeClaro.withValues(alpha: 0.3),
                           width: 1,
                         ),
                       ),
@@ -1674,7 +1683,7 @@ class _PDFPageState extends State<PDFPage> {
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.15),
+            color: Colors.black.withValues(alpha: 0.15),
             spreadRadius: 2,
             blurRadius: 10,
             offset: const Offset(0, 4),
@@ -1766,9 +1775,9 @@ class _PDFPageState extends State<PDFPage> {
                     height: 48,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: Colors.white.withOpacity(0.35),
+                      color: Colors.white.withValues(alpha: 0.35),
                       border: Border.all(
-                        color: Colors.white.withOpacity(0.5),
+                        color: Colors.white.withValues(alpha: 0.5),
                         width: 1,
                       ),
                       boxShadow: [
@@ -1837,7 +1846,7 @@ class _PDFPageState extends State<PDFPage> {
 class _ButtonContainer extends StatelessWidget {
   final List<Widget> children;
 
-  const _ButtonContainer({super.key, required this.children});
+  const _ButtonContainer({required this.children});
 
   @override
   Widget build(BuildContext context) {
@@ -1864,13 +1873,16 @@ class _ButtonContainer extends StatelessWidget {
             borderRadius: BorderRadius.circular(12), // Bordes más redondeados
             boxShadow: [
               BoxShadow(
-                color: verdePrincipal.withOpacity(0.15),
+                color: verdePrincipal.withValues(alpha: 0.15),
                 spreadRadius: 2,
                 blurRadius: 8,
                 offset: const Offset(0, 4),
               ),
             ],
-            border: Border.all(color: verdeClaro.withOpacity(0.3), width: 1),
+            border: Border.all(
+              color: verdeClaro.withValues(alpha: 0.3),
+              width: 1,
+            ),
           ),
           child: isSmallScreen
               ? Column(
@@ -1975,7 +1987,7 @@ class _StyledButtonState extends State<_StyledButton> {
                   ? (_isHovered
                         ? verdeClaro // Color verde claro en hover
                         : verdePrincipal) // Color verde principal normal
-                  : verdePrincipal.withOpacity(0.4),
+                  : verdePrincipal.withValues(alpha: 0.4),
               borderRadius: BorderRadius.circular(
                 6,
               ), // Bordes redondeados de 6px
@@ -1983,16 +1995,16 @@ class _StyledButtonState extends State<_StyledButton> {
                 color: widget.enabled
                     ? (_isHovered
                           ? verdeOscuro // Color verde oscuro en hover
-                          : verdePrincipal.withOpacity(
-                              0.8,
+                          : verdePrincipal.withValues(
+                              alpha: 0.8,
                             )) // Color verde normal
-                    : verdePrincipal.withOpacity(0.3),
+                    : verdePrincipal.withValues(alpha: 0.3),
                 width: 1,
               ),
               boxShadow: [
                 BoxShadow(
                   color: _isHovered && widget.enabled
-                      ? verdePrincipal.withOpacity(0.3)
+                      ? verdePrincipal.withValues(alpha: 0.3)
                       : Colors.transparent,
                   spreadRadius: 2,
                   blurRadius: 8,
@@ -2011,7 +2023,7 @@ class _StyledButtonState extends State<_StyledButton> {
                     color: widget.enabled
                         ? Colors
                               .white // Iconos en blanco para contraste
-                        : Colors.white.withOpacity(0.6),
+                        : Colors.white.withValues(alpha: 0.6),
                   ),
                   const SizedBox(width: 8),
                 ],
@@ -2023,7 +2035,7 @@ class _StyledButtonState extends State<_StyledButton> {
                     color: widget.enabled
                         ? Colors
                               .white // Texto en blanco para mejor contraste
-                        : Colors.white.withOpacity(0.6),
+                        : Colors.white.withValues(alpha: 0.6),
                     letterSpacing: 0.2,
                   ),
                 ),
@@ -2080,7 +2092,7 @@ class _InteractiveRectButtonState extends State<_InteractiveRectButton> {
   @override
   Widget build(BuildContext context) {
     final Color bg = !_hover ? widget.baseColor : widget.hoverColor;
-    final Color bgDisabled = widget.baseColor.withOpacity(0.6);
+    final Color bgDisabled = widget.baseColor.withValues(alpha: 0.6);
     final Color fg = Colors.white;
 
     final boxShadow =
@@ -2139,7 +2151,7 @@ class _InteractiveRectButtonState extends State<_InteractiveRectButton> {
                               style: TextStyle(
                                 fontFamily: 'Roboto',
                                 fontWeight: FontWeight.w500,
-                                fontSize: fs as double,
+                                fontSize: fs,
                                 color: Colors.white,
                               ),
                             );

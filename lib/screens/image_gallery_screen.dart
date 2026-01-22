@@ -23,10 +23,9 @@ class _ImageGalleryScreenState extends State<ImageGalleryScreen> {
   int? endHour;
 
   // Paleta del Main Menu (aplicada solo en esta pantalla)
-  static const Color _darkGreen = Color(0xFF004C3F);      // Títulos, íconos
-  static const Color _mintBg = Color(0xFFE6FFF5);          // Fondos suaves
-  static const Color _cryptoA = Color(0xFF00E0A6);         // Acento principal
-  static const Color _cryptoB = Color(0xFF00B7B0);         // Acento secundario
+  static const Color _darkGreen = Color(0xFF004C3F); // Títulos, íconos
+  static const Color _mintBg = Color(0xFFE6FFF5); // Fondos suaves
+  static const Color _cryptoA = Color(0xFF00E0A6); // Acento principal
 
   @override
   void initState() {
@@ -49,7 +48,7 @@ class _ImageGalleryScreenState extends State<ImageGalleryScreen> {
 
     // Simulación de carga de imágenes (aquí iría la lógica real)
     await Future.delayed(const Duration(seconds: 1));
-    
+
     // Imágenes de ejemplo
     setState(() {
       images = [
@@ -95,10 +94,7 @@ class _ImageGalleryScreenState extends State<ImageGalleryScreen> {
         centerTitle: true,
         title: Text(
           'Galería de Imágenes',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: _darkGreen,
-          ),
+          style: TextStyle(fontWeight: FontWeight.bold, color: _darkGreen),
         ),
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: _darkGreen),
@@ -119,7 +115,7 @@ class _ImageGalleryScreenState extends State<ImageGalleryScreen> {
             child: Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.9),
+                color: Colors.white.withValues(alpha: 0.9),
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(color: const Color(0x4D00E0A6)),
                 boxShadow: const [
@@ -160,7 +156,10 @@ class _ImageGalleryScreenState extends State<ImageGalleryScreen> {
                         style: OutlinedButton.styleFrom(
                           side: BorderSide(color: _cryptoA),
                           foregroundColor: _cryptoA,
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 8,
+                          ),
                           visualDensity: VisualDensity.compact,
                         ),
                         onPressed: _resetFilters,
@@ -174,75 +173,71 @@ class _ImageGalleryScreenState extends State<ImageGalleryScreen> {
           ),
           const SizedBox(height: 12),
           // Card grande de estadísticas eliminada por requerimiento
-          
+
           // Grid de imágenes
           Expanded(
             child: isLoading
+                ? Center(child: CircularProgressIndicator(color: _cryptoA))
+                : _filteredImages.isEmpty
                 ? Center(
-                    child: CircularProgressIndicator(
-                      color: _cryptoA,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.photo_library_outlined,
+                          size: 64,
+                          color: Colors.grey.shade400,
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'No hay imágenes disponibles',
+                          style: TextStyle(
+                            fontSize: 18,
+                            color: Colors.grey.shade600,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Conecta tu dispositivo para obtener imágenes',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey.shade500,
+                          ),
+                        ),
+                      ],
                     ),
                   )
-                : _filteredImages.isEmpty
-                    ? Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.photo_library_outlined,
-                              size: 64,
-                              color: Colors.grey.shade400,
-                            ),
-                            const SizedBox(height: 16),
-                            Text(
-                              'No hay imágenes disponibles',
-                              style: TextStyle(
-                                fontSize: 18,
-                                color: Colors.grey.shade600,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              'Conecta tu dispositivo para obtener imágenes',
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Colors.grey.shade500,
-                              ),
-                            ),
-                          ],
-                        ),
-                      )
-                    : Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: GridView.builder(
-                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 2,
-                            crossAxisSpacing: 12,
-                            mainAxisSpacing: 12,
-                            // Volver al aspecto original para mantener estilo visual
-                            childAspectRatio: 0.95,
-                          ),
-                          itemCount: _filteredImages.length,
-                          itemBuilder: (context, index) {
-                            final image = _filteredImages[index];
-                            return _buildImageCard(image);
-                          },
-                        ),
+                : Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: GridView.builder(
+                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        crossAxisSpacing: 12,
+                        mainAxisSpacing: 12,
+                        // Volver al aspecto original para mantener estilo visual
+                        childAspectRatio: 0.95,
                       ),
+                      itemCount: _filteredImages.length,
+                      itemBuilder: (context, index) {
+                        final image = _filteredImages[index];
+                        return _buildImageCard(image);
+                      },
+                    ),
+                  ),
           ),
         ],
       ),
       // Botón de captura eliminado según requerimiento
-      bottomNavigationBar: const BottomNavigationWidget(currentIndex: 0), // Índice 0 para "Home"
+      bottomNavigationBar: const BottomNavigationWidget(
+        currentIndex: 0,
+      ), // Índice 0 para "Home"
     );
   }
 
   Widget _buildImageCard(ImageData image) {
     return Card(
       elevation: 4,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(18),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
       child: InkWell(
         onTap: () {
           Navigator.push(
@@ -267,14 +262,10 @@ class _ImageGalleryScreenState extends State<ImageGalleryScreen> {
                     topRight: Radius.circular(12),
                   ),
                 ),
-                child: Icon(
-                  Icons.image,
-                  size: 48,
-                  color: Colors.grey.shade400,
-                ),
+                child: Icon(Icons.image, size: 48, color: Colors.grey.shade400),
               ),
             ),
-            
+
             // Información de la imagen
             Expanded(
               flex: 1,
@@ -297,11 +288,18 @@ class _ImageGalleryScreenState extends State<ImageGalleryScreen> {
                     Tooltip(
                       message: 'Descargar',
                       child: IconButton(
-                        icon: Icon(Icons.download_rounded, color: _cryptoA, size: 20),
+                        icon: Icon(
+                          Icons.download_rounded,
+                          color: _cryptoA,
+                          size: 20,
+                        ),
                         onPressed: () => _downloadImage(image),
                         splashRadius: 16,
                         padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints.tightFor(width: 26, height: 26),
+                        constraints: const BoxConstraints.tightFor(
+                          width: 26,
+                          height: 26,
+                        ),
                       ),
                     ),
                   ],
@@ -345,8 +343,18 @@ class _ImageGalleryScreenState extends State<ImageGalleryScreen> {
 
   Widget _buildMonthDropdown() {
     const labels = {
-      1: 'Ene', 2: 'Feb', 3: 'Mar', 4: 'Abr', 5: 'May', 6: 'Jun',
-      7: 'Jul', 8: 'Ago', 9: 'Sep', 10: 'Oct', 11: 'Nov', 12: 'Dic',
+      1: 'Ene',
+      2: 'Feb',
+      3: 'Mar',
+      4: 'Abr',
+      5: 'May',
+      6: 'Jun',
+      7: 'Jul',
+      8: 'Ago',
+      9: 'Sep',
+      10: 'Oct',
+      11: 'Nov',
+      12: 'Dic',
     };
     return SizedBox(
       width: 90,
@@ -355,7 +363,9 @@ class _ImageGalleryScreenState extends State<ImageGalleryScreen> {
         hint: const Text('Mes'),
         value: selectedMonth,
         items: labels.entries
-            .map((e) => DropdownMenuItem<int>(value: e.key, child: Text(e.value)))
+            .map(
+              (e) => DropdownMenuItem<int>(value: e.key, child: Text(e.value)),
+            )
             .toList(),
         onChanged: (v) => setState(() => selectedMonth = v),
       ),
@@ -388,10 +398,12 @@ class _ImageGalleryScreenState extends State<ImageGalleryScreen> {
         hint: Text(isStart ? 'Inicio' : 'Fin'),
         value: isStart ? startHour : endHour,
         items: hours
-            .map((h) => DropdownMenuItem<int>(
-                  value: h,
-                  child: Text('${h.toString().padLeft(2, '0')}:00'),
-                ))
+            .map(
+              (h) => DropdownMenuItem<int>(
+                value: h,
+                child: Text('${h.toString().padLeft(2, '0')}:00'),
+              ),
+            )
             .toList(),
         onChanged: (v) => setState(() {
           if (isStart) {
@@ -475,15 +487,6 @@ class _ImageGalleryScreenState extends State<ImageGalleryScreen> {
     _showSnackBar('Imagen descargada con éxito', _cryptoA);
   }
 
-  String _formatExactDateTime(DateTime dt) {
-    final d = dt.day.toString().padLeft(2, '0');
-    final m = dt.month.toString().padLeft(2, '0');
-    final y = dt.year.toString();
-    final h = dt.hour.toString().padLeft(2, '0');
-    final min = dt.minute.toString().padLeft(2, '0');
-    return '$d/$m/$y - $h:$min';
-  }
-
   String _formatShortDate(DateTime dt) {
     final yy = (dt.year % 100).toString().padLeft(2, '0');
     // Día y mes sin ceros a la izquierda para coincidir con "2/11/25"
@@ -495,20 +498,5 @@ class _ImageGalleryScreenState extends State<ImageGalleryScreen> {
     final h = local.hour.toString().padLeft(2, '0');
     final m = local.minute.toString().padLeft(2, '0');
     return '$h:$m';
-  }
-
-  String _formatDateTime(DateTime dateTime) {
-    final now = DateTime.now();
-    final difference = now.difference(dateTime);
-    
-    if (difference.inDays > 0) {
-      return '${difference.inDays}d ago';
-    } else if (difference.inHours > 0) {
-      return '${difference.inHours}h ago';
-    } else if (difference.inMinutes > 0) {
-      return '${difference.inMinutes}m ago';
-    } else {
-      return 'Ahora';
-    }
   }
 }

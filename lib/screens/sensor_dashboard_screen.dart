@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'sensor_detail_page.dart';
 import '../widgets/bottom_navigation_widget.dart';
-import 'dart:ui';
 
 class SensorDashboardScreen extends StatefulWidget {
   final String ip;
@@ -40,6 +38,7 @@ class _SensorDashboardScreenState extends State<SensorDashboardScreen> {
 
   // Eliminado validador de año
 
+  // ignore: unused_element
   Future<void> _setIpDialog() async {
     final TextEditingController controller = TextEditingController(
       text: esp32Ip ?? "",
@@ -289,6 +288,7 @@ class _SensorCardWithImageState extends State<SensorCardWithImage> {
     final Size size = MediaQuery.of(context).size;
     final bool isWide = size.width >= 700; // tablet/desktop
     // Base tipográfica como unidad relativa (em/rem aproximado)
+    // ignore: deprecated_member_use
     final double baseEm = 14 * MediaQuery.of(context).textScaleFactor;
     // Imagen proporcional al ancho de pantalla, con límites para consistencia
     final double iconSize = (size.width * 0.18).clamp(
@@ -301,18 +301,18 @@ class _SensorCardWithImageState extends State<SensorCardWithImage> {
     // Sombras exteriores con relieve dinámico en hover/press (sin cambiar colores).
     final List<BoxShadow> outerShadows = [
       BoxShadow(
-        color: baseColor.withOpacity(0.28),
+        color: baseColor.withValues(alpha: 0.28),
         blurRadius: _isPressed ? 20 : (_isHovered ? 28 : 24),
         offset: Offset(0, _isPressed ? 6 : 8),
       ),
       BoxShadow(
-        color: baseColor.withOpacity(0.16),
+        color: baseColor.withValues(alpha: 0.16),
         blurRadius: _isPressed ? 10 : (_isHovered ? 16 : 12),
         offset: Offset(0, _isPressed ? 3 : 4),
       ),
       if (_isHovered)
         BoxShadow(
-          color: accentColor.withOpacity(0.35),
+          color: accentColor.withValues(alpha: 0.35),
           blurRadius: 22,
           spreadRadius: 2,
           offset: const Offset(0, 0),
@@ -367,8 +367,8 @@ class _SensorCardWithImageState extends State<SensorCardWithImage> {
                 ),
                 borderRadius: BorderRadius.circular(24),
                 border: Border.all(
-                  color: Colors.white.withOpacity(
-                    _isPressed ? 1.0 : (_isHovered ? 0.85 : 0.75),
+                  color: Colors.white.withValues(
+                    alpha: _isPressed ? 1.0 : (_isHovered ? 0.85 : 0.75),
                   ),
                   width: _isPressed ? 3.0 : (_isHovered ? 2.0 : 1.8),
                 ),
@@ -376,13 +376,13 @@ class _SensorCardWithImageState extends State<SensorCardWithImage> {
                     ? [
                         ...outerShadows,
                         BoxShadow(
-                          color: Colors.white.withOpacity(0.45),
+                          color: Colors.white.withValues(alpha: 0.45),
                           blurRadius: 42,
                           spreadRadius: 2.8,
                           offset: const Offset(0, 0),
                         ),
                         BoxShadow(
-                          color: Colors.white.withOpacity(0.18),
+                          color: Colors.white.withValues(alpha: 0.18),
                           blurRadius: 64,
                           spreadRadius: 6.0,
                           offset: const Offset(0, 0),
@@ -418,7 +418,7 @@ class _SensorCardWithImageState extends State<SensorCardWithImage> {
                                   shape: BoxShape.circle,
                                   boxShadow: [
                                     BoxShadow(
-                                      color: baseColor.withOpacity(0.22),
+                                      color: baseColor.withValues(alpha: 0.22),
                                       blurRadius: 24,
                                       spreadRadius: 2,
                                       offset: const Offset(0, 10),
@@ -433,7 +433,9 @@ class _SensorCardWithImageState extends State<SensorCardWithImage> {
                                   decoration: BoxDecoration(
                                     boxShadow: [
                                       BoxShadow(
-                                        color: baseColor.withOpacity(0.18),
+                                        color: baseColor.withValues(
+                                          alpha: 0.18,
+                                        ),
                                         blurRadius: 16,
                                         spreadRadius: 1,
                                         offset: const Offset(0, 6),
@@ -477,7 +479,9 @@ class _SensorCardWithImageState extends State<SensorCardWithImage> {
                                   letterSpacing: 0.1,
                                   shadows: [
                                     Shadow(
-                                      color: accentColor.withOpacity(0.35),
+                                      color: accentColor.withValues(
+                                        alpha: 0.35,
+                                      ),
                                       blurRadius: 2.0,
                                       offset: const Offset(0, 1),
                                     ),
@@ -519,8 +523,10 @@ class _SensorCardWithImageState extends State<SensorCardWithImage> {
                                 ? Alignment.bottomRight
                                 : Alignment.bottomLeft,
                             colors: [
-                              Colors.white.withOpacity(
-                                _isPressed ? 0.52 : (_isHovered ? 0.34 : 0.28),
+                              Colors.white.withValues(
+                                alpha: _isPressed
+                                    ? 0.52
+                                    : (_isHovered ? 0.34 : 0.28),
                               ),
                               Colors.transparent,
                             ],
@@ -540,7 +546,7 @@ class _SensorCardWithImageState extends State<SensorCardWithImage> {
                             center: Alignment.topLeft,
                             radius: 0.8,
                             colors: [
-                              Colors.white.withOpacity(0.32),
+                              Colors.white.withValues(alpha: 0.32),
                               Colors.transparent,
                             ],
                           ),
@@ -559,7 +565,9 @@ class _SensorCardWithImageState extends State<SensorCardWithImage> {
                             begin: Alignment.bottomCenter,
                             end: Alignment.topCenter,
                             colors: [
-                              accentColor.withOpacity(_isPressed ? 0.55 : 0.35),
+                              accentColor.withValues(
+                                alpha: _isPressed ? 0.55 : 0.35,
+                              ),
                               Colors.transparent,
                             ],
                             stops: _isPressed
@@ -583,7 +591,7 @@ class _SensorCardWithImageState extends State<SensorCardWithImage> {
                               center: Alignment.center,
                               radius: 1.0,
                               colors: [
-                                accentColor.withOpacity(0.18),
+                                accentColor.withValues(alpha: 0.18),
                                 Colors.transparent,
                               ],
                             ),
@@ -646,7 +654,7 @@ class _SensorActionButtonState extends State<SensorActionButton> {
 
   @override
   Widget build(BuildContext context) {
-    const Color borderColor = Color(0xFF009E73);
+    // const Color borderColor = Color(0xFF009E73);
     const Color bgBase = Color(0xFFE6FFF5); // fondo mint claro
     const Color bgHover = Color(0xFF6DFFF5); // hover mint
     final Color bg = _hovering ? bgHover : bgBase;
@@ -672,7 +680,11 @@ class _SensorActionButtonState extends State<SensorActionButton> {
           curve: Curves.easeOut,
           width: btnSize,
           height: btnSize,
-          transform: Matrix4.identity()..scale(_pressed ? 0.98 : 1.0),
+          transform: Matrix4.diagonal3Values(
+            _pressed ? 0.98 : 1.0,
+            _pressed ? 0.98 : 1.0,
+            1.0,
+          ),
           child: ClipOval(
             child: Container(
               color: bg,

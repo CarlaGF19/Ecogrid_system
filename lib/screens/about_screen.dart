@@ -100,7 +100,7 @@ class _AboutScreenState extends State<AboutScreen> {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: ecoPrimary.withOpacity(0.10),
+            color: ecoPrimary.withValues(alpha: 0.10),
             blurRadius: 12,
             offset: const Offset(0, 6),
           ),

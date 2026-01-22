@@ -23,9 +23,7 @@ class _DeviceConnectionScreenState extends State<DeviceConnectionScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(
-            bottom: Radius.circular(20),
-          ),
+          borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
         ),
         title: const Flexible(
           child: Text(
@@ -49,7 +47,9 @@ class _DeviceConnectionScreenState extends State<DeviceConnectionScreen> {
             _buildIpConfigButton(),
             const SizedBox(height: 16),
             _buildConnectionStatistics(),
-            const SizedBox(height: 16), // Espacio adicional para evitar overflow
+            const SizedBox(
+              height: 16,
+            ), // Espacio adicional para evitar overflow
           ],
         ),
       ),
@@ -67,14 +67,14 @@ class _DeviceConnectionScreenState extends State<DeviceConnectionScreen> {
           children: [
             Row(
               children: [
-                const Icon(Icons.wifi, color: Color(0xFF498428)), // Verde oscuro
+                const Icon(
+                  Icons.wifi,
+                  color: Color(0xFF498428),
+                ), // Verde oscuro
                 const SizedBox(width: 8),
                 const Text(
                   'Estado de Conexión Principal',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
               ],
             ),
@@ -139,7 +139,6 @@ class _DeviceConnectionScreenState extends State<DeviceConnectionScreen> {
     );
   }
 
-
   Widget _buildConnectionStatistics() {
     return Card(
       elevation: 4,
@@ -150,14 +149,14 @@ class _DeviceConnectionScreenState extends State<DeviceConnectionScreen> {
           children: [
             Row(
               children: [
-                const Icon(Icons.analytics, color: Color(0xFF498428)), // Verde oscuro
+                const Icon(
+                  Icons.analytics,
+                  color: Color(0xFF498428),
+                ), // Verde oscuro
                 const SizedBox(width: 8),
                 const Text(
                   'Estadísticas de Conexión',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
               ],
             ),
@@ -197,6 +196,7 @@ class _DeviceConnectionScreenState extends State<DeviceConnectionScreen> {
     );
   }
 
+  // ignore: unused_element
   Widget _buildDeviceItem({
     required IconData icon,
     required String title,
@@ -228,7 +228,7 @@ class _DeviceConnectionScreenState extends State<DeviceConnectionScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: statusColor.withOpacity(0.1),
+                  color: statusColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
@@ -243,18 +243,17 @@ class _DeviceConnectionScreenState extends State<DeviceConnectionScreen> {
             ],
           ),
           const SizedBox(height: 8),
-          ...details.map((detail) => Padding(
-                padding: const EdgeInsets.only(left: 32, top: 2),
-                child: Text(
-                  detail,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey[600],
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 1,
-                ),
-              )),
+          ...details.map(
+            (detail) => Padding(
+              padding: const EdgeInsets.only(left: 32, top: 2),
+              child: Text(
+                detail,
+                style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -268,11 +267,7 @@ class _DeviceConnectionScreenState extends State<DeviceConnectionScreen> {
         children: [
           Expanded(
             flex: 2,
-            child: Text(
-              title,
-              overflow: TextOverflow.ellipsis,
-              maxLines: 1,
-            ),
+            child: Text(title, overflow: TextOverflow.ellipsis, maxLines: 1),
           ),
           Expanded(
             flex: 1,
@@ -292,6 +287,7 @@ class _DeviceConnectionScreenState extends State<DeviceConnectionScreen> {
     );
   }
 
+  // ignore: unused_element
   void _showSearchDialog() {
     showDialog(
       context: context,

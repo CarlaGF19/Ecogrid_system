@@ -11,6 +11,8 @@ import 'screens/image_detail_screen.dart';
 import 'screens/device_connection_screen.dart';
 import 'screens/about_screen.dart';
 import 'screens/notifications_screen.dart';
+import 'screens/login_screen.dart';
+import 'screens/register_screen.dart';
 import 'models/image_data.dart';
 
 void main() {
@@ -18,8 +20,16 @@ void main() {
 }
 
 final GoRouter _router = GoRouter(
-  initialLocation: '/',
+  initialLocation: '/login', // Changed to show Login Screen first
   routes: [
+    GoRoute(
+      path: '/login',
+      builder: (context, state) => const LoginScreen(),
+    ),
+    GoRoute(
+      path: '/register',
+      builder: (context, state) => const RegisterScreen(),
+    ),
     GoRoute(
       path: '/',
       builder: (context, state) => const WelcomeScreen(),

@@ -13,6 +13,7 @@ import 'screens/about_screen.dart';
 import 'screens/notifications_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/register_screen.dart';
+import 'screens/home_screen.dart';
 import 'models/image_data.dart';
 
 void main() {
@@ -22,22 +23,13 @@ void main() {
 final GoRouter _router = GoRouter(
   initialLocation: '/login', // Changed to show Login Screen first
   routes: [
-    GoRoute(
-      path: '/login',
-      builder: (context, state) => const LoginScreen(),
-    ),
+    GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
     GoRoute(
       path: '/register',
       builder: (context, state) => const RegisterScreen(),
     ),
-    GoRoute(
-      path: '/',
-      builder: (context, state) => const WelcomeScreen(),
-    ),
-    GoRoute(
-      path: '/splash',
-      builder: (context, state) => const SplashScreen(),
-    ),
+    GoRoute(path: '/', builder: (context, state) => const WelcomeScreen()),
+    GoRoute(path: '/splash', builder: (context, state) => const SplashScreen()),
     GoRoute(
       path: '/ip',
       builder: (context, state) => const DeviceConfigScreen(),
@@ -46,6 +38,7 @@ final GoRouter _router = GoRouter(
       path: '/main-menu',
       builder: (context, state) => const MainMenuScreen(),
     ),
+    GoRoute(path: '/app-home', builder: (context, state) => const HomeScreen()),
     GoRoute(
       path: '/home',
       builder: (context, state) {
@@ -79,10 +72,7 @@ final GoRouter _router = GoRouter(
       path: '/device-connection',
       builder: (context, state) => const DeviceConnectionScreen(),
     ),
-    GoRoute(
-      path: '/about',
-      builder: (context, state) => const AboutScreen(),
-    ),
+    GoRoute(path: '/about', builder: (context, state) => const AboutScreen()),
     GoRoute(
       path: '/notifications',
       builder: (context, state) => const NotificationsScreen(),

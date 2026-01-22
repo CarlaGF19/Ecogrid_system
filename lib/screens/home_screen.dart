@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import 'sensor_dashboard_screen.dart';
 import 'main_menu_screen.dart'; // For PDFPage
 
 class HomeScreen extends StatefulWidget {

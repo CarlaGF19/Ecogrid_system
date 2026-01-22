@@ -178,7 +178,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                     color: Colors.transparent,
                                     child: InkWell(
                                       onTap: () {
-                                        context.go('/main-menu');
+                                        context.go('/app-home');
                                       },
                                       borderRadius: BorderRadius.circular(28),
                                       child: const Center(

@@ -259,7 +259,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                     onTap: () {
                                       // Acción registrar
                                       if (_acceptedTerms) {
-                                        context.go('/main-menu');
+                                        context.go('/app-home');
                                       } else {
                                         ScaffoldMessenger.of(
                                           context,

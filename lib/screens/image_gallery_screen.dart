@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'image_detail_screen.dart';
 import '../models/image_data.dart';
@@ -18,9 +19,10 @@ class _ImageGalleryScreenState extends State<ImageGalleryScreen> {
   String? esp32Ip;
 
   // Filtros
-  DateTime? _selectedDate;
-  int? startHour;
-  int? endHour;
+  DateTime? _startDate;
+  DateTime? _endDate;
+  TimeOfDay _startTime = const TimeOfDay(hour: 18, minute: 0);
+  TimeOfDay _endTime = const TimeOfDay(hour: 22, minute: 0);
 
   // Paleta Eco-Corporate (MANDATORY)
   static const Color _bgTop = Color(0xFFFFFFFF);
@@ -30,9 +32,7 @@ class _ImageGalleryScreenState extends State<ImageGalleryScreen> {
   static const Color _textLabel = Color(
     0xFF004C3F,
   ); // 60% opacity applied in usage
-  static const Color _shadowEco = Color(
-    0x26004C3F,
-  ); // #2600A078 aprox (using dark forest at low opacity)
+  static const Color _shadowEco = Color(0x2600A078); // Eco Shadow (Mint-ish)
 
   @override
   void initState() {
@@ -100,9 +100,10 @@ class _ImageGalleryScreenState extends State<ImageGalleryScreen> {
 
   void _resetFilters() {
     setState(() {
-      _selectedDate = null;
-      startHour = null;
-      endHour = null;
+      _startDate = null;
+      _endDate = null;
+      _startTime = const TimeOfDay(hour: 18, minute: 0);
+      _endTime = const TimeOfDay(hour: 22, minute: 0);
     });
   }
 
@@ -110,30 +111,51 @@ class _ImageGalleryScreenState extends State<ImageGalleryScreen> {
     return images.where((img) {
       final ts = img.timestamp;
 
-      // Date Filter (Single Day)
+      // Date Range Filter
       bool dateOk = true;
-      if (_selectedDate != null) {
+      if (_startDate != null) {
         dateOk =
-            ts.year == _selectedDate!.year &&
-            ts.month == _selectedDate!.month &&
-            ts.day == _selectedDate!.day;
+            dateOk &&
+            (ts.isAfter(_startDate!) ||
+                ts.year == _startDate!.year &&
+                    ts.month == _startDate!.month &&
+                    ts.day == _startDate!.day);
+      }
+      if (_endDate != null) {
+        // Set end date to end of day
+        final endOfDay = DateTime(
+          _endDate!.year,
+          _endDate!.month,
+          _endDate!.day,
+          23,
+          59,
+          59,
+        );
+        dateOk = dateOk && ts.isBefore(endOfDay);
       }
 
       // Time Range Filter
-      final hourOk = (startHour == null || endHour == null)
-          ? true
-          : ts.hour >= (startHour ?? 0) && ts.hour <= (endHour ?? 23);
+      final imgMinutes = ts.hour * 60 + ts.minute;
+      final startMinutes = _startTime.hour * 60 + _startTime.minute;
+      final endMinutes = _endTime.hour * 60 + _endTime.minute;
+      final hourOk = imgMinutes >= startMinutes && imgMinutes <= endMinutes;
 
       return dateOk && hourOk;
     }).toList();
   }
 
-  Future<void> _pickDate() async {
+  Future<void> _pickDate(bool isStart) async {
+    final initialDate = isStart
+        ? (_startDate ?? DateTime.now())
+        : (_endDate ?? DateTime.now());
+    final firstDate = isStart ? DateTime(2020) : (_startDate ?? DateTime(2020));
+    final lastDate = isStart ? (_endDate ?? DateTime.now()) : DateTime.now();
+
     final picked = await showDatePicker(
       context: context,
-      initialDate: _selectedDate ?? DateTime.now(),
-      firstDate: DateTime(2020),
-      lastDate: DateTime.now(),
+      initialDate: initialDate,
+      firstDate: firstDate,
+      lastDate: lastDate,
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
@@ -150,7 +172,15 @@ class _ImageGalleryScreenState extends State<ImageGalleryScreen> {
 
     if (picked != null) {
       setState(() {
-        _selectedDate = picked;
+        if (isStart) {
+          _startDate = picked;
+          // Validate logic: if start > end, reset end
+          if (_endDate != null && _startDate!.isAfter(_endDate!)) {
+            _endDate = null;
+          }
+        } else {
+          _endDate = picked;
+        }
       });
     }
   }
@@ -178,10 +208,10 @@ class _ImageGalleryScreenState extends State<ImageGalleryScreen> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
                 child: Text(
-                  'Panel de Datos\nAnalíticos',
+                  'Galería de\nRegistros',
                   style: TextStyle(
                     fontFamily: 'Inter', // Fallback to system if not avail
-                    fontSize: 26,
+                    fontSize: 34,
                     fontWeight: FontWeight.w800,
                     color: _textHeader,
                     letterSpacing: -1.0,
@@ -190,25 +220,22 @@ class _ImageGalleryScreenState extends State<ImageGalleryScreen> {
                 ),
               ),
 
-              const SizedBox(height: 16),
+              const SizedBox(height: 24),
 
-              // ✨ FILTER PANEL (GLASSMORPHISM)
+              // 🔍 FILTER SECTION (Single Glass Card)
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: ClipRRect(
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(26),
                   child: BackdropFilter(
                     filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 12,
-                      ),
+                      padding: const EdgeInsets.all(20),
                       decoration: BoxDecoration(
                         color: Colors.white.withValues(
                           alpha: 0.35,
                         ), // 35% opacity
-                        borderRadius: BorderRadius.circular(20),
+                        borderRadius: BorderRadius.circular(26),
                         border: Border.all(
                           color: Colors.white.withValues(alpha: 0.6),
                         ),
@@ -220,85 +247,99 @@ class _ImageGalleryScreenState extends State<ImageGalleryScreen> {
                           ),
                         ],
                       ),
-                      child: SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: Row(
-                          children: [
-                            // 1. Date Picker
-                            _buildCapsuleInput(
-                              icon: Icons.calendar_today_rounded,
-                              label: _selectedDate == null
-                                  ? 'Fecha'
-                                  : '${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}',
-                              onTap: _pickDate,
-                              isActive: _selectedDate != null,
-                              width: 130,
-                            ),
-                            const SizedBox(width: 8),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // 1. FECHA DE CAPTURA (Range)
+                          Row(
+                            children: [
+                              Expanded(
+                                child: _buildCapsuleInput(
+                                  icon: Icons.calendar_today_rounded,
+                                  label: _startDate == null
+                                      ? 'Inicio'
+                                      : '${_startDate!.day}/${_startDate!.month}/${_startDate!.year}',
+                                  onTap: () => _pickDate(true),
+                                  isActive: _startDate != null,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: _buildCapsuleInput(
+                                  icon: Icons.event_rounded,
+                                  label: _endDate == null
+                                      ? 'Fin'
+                                      : '${_endDate!.day}/${_endDate!.month}/${_endDate!.year}',
+                                  onTap: () => _pickDate(false),
+                                  isActive: _endDate != null,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
 
-                            // 2. Start Time
-                            _buildDropdownCapsule(
-                              icon: Icons.access_time_rounded,
-                              label: 'Inicio',
-                              value: startHour,
-                              onChanged: (v) => setState(() => startHour = v),
-                              width: 100,
-                            ),
-                            const SizedBox(width: 8),
+                          // 2. HORARIO (Range)
+                          Row(
+                            children: [
+                              Expanded(
+                                child: _TimeInputCapsule(
+                                  initialValue: _startTime,
+                                  onChanged: (v) =>
+                                      setState(() => _startTime = v),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: _TimeInputCapsule(
+                                  initialValue: _endTime,
+                                  onChanged: (v) =>
+                                      setState(() => _endTime = v),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 20),
 
-                            // 3. End Time
-                            _buildDropdownCapsule(
-                              icon: Icons.schedule_rounded,
-                              label: 'Fin',
-                              value: endHour,
-                              onChanged: (v) => setState(() => endHour = v),
-                              width: 100,
-                            ),
-                            const SizedBox(width: 8),
-
-                            // 4. Reset Button (Compact)
-                            _buildResetButton(),
-                          ],
-                        ),
+                          // 3. FILTER ACTIONS (Badge + Clear)
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              // Badge
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 8,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: _filteredImages.isNotEmpty
+                                      ? _primaryMint
+                                      : Colors.grey.withValues(alpha: 0.2),
+                                  borderRadius: BorderRadius.circular(100),
+                                ),
+                                child: Text(
+                                  'Total: ${_filteredImages.length} registros',
+                                  style: TextStyle(
+                                    color: _filteredImages.isNotEmpty
+                                        ? Colors.white
+                                        : _textHeader.withValues(alpha: 0.6),
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w700,
+                                    letterSpacing: 0.5,
+                                  ),
+                                ),
+                              ),
+                              // Clear Filters
+                              _buildResetButton(),
+                            ],
+                          ),
+                        ],
                       ),
                     ),
                   ),
                 ),
               ),
 
-              const SizedBox(height: 16),
-
-              // 📊 CENTRAL SECTION — SUMMARY BADGE
-              Center(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
-                  ),
-                  decoration: BoxDecoration(
-                    color: _primaryMint,
-                    borderRadius: BorderRadius.circular(100),
-                    boxShadow: [
-                      BoxShadow(
-                        color: _primaryMint.withValues(alpha: 0.3),
-                        blurRadius: 12,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: Text(
-                    'Total: ${_filteredImages.length} imágenes',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 0.5,
-                    ),
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 16),
+              const SizedBox(height: 24),
 
               // 🖼️ CONTENT SECTION — IMAGE GRID
               Expanded(
@@ -312,7 +353,7 @@ class _ImageGalleryScreenState extends State<ImageGalleryScreen> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Icon(
-                              Icons.image_not_supported_outlined,
+                              Icons.search_off_rounded,
                               size: 48,
                               color: _textHeader.withValues(alpha: 0.4),
                             ),
@@ -324,26 +365,75 @@ class _ImageGalleryScreenState extends State<ImageGalleryScreen> {
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Ajusta el rango de fechas para ver registros',
+                              style: TextStyle(
+                                color: _textHeader.withValues(alpha: 0.4),
+                                fontSize: 13,
+                              ),
+                            ),
                           ],
                         ),
                       )
-                    : GridView.builder(
-                        padding: const EdgeInsets.fromLTRB(
-                          20,
-                          0,
-                          20,
-                          100,
-                        ), // Bottom padding for nav bar
-                        gridDelegate:
-                            const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 2,
-                              crossAxisSpacing: 16,
-                              mainAxisSpacing: 16,
-                              childAspectRatio: 0.85,
-                            ),
-                        itemCount: _filteredImages.length,
+                    : ListView.builder(
+                        padding: const EdgeInsets.fromLTRB(20, 0, 20, 100),
+                        itemCount: _groupImagesByDate(_filteredImages).length,
                         itemBuilder: (context, index) {
-                          return _buildImageCard(_filteredImages[index]);
+                          final group = _groupImagesByDate(
+                            _filteredImages,
+                          )[index];
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // Date Header
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 16,
+                                ),
+                                child: Row(
+                                  children: [
+                                    Text(
+                                      group.date,
+                                      style: const TextStyle(
+                                        color: _textHeader,
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w800,
+                                        fontFamily: 'Inter',
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Container(
+                                        height: 1,
+                                        color: _textHeader.withValues(
+                                          alpha: 0.1,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              // Images Grid
+                              GridView.builder(
+                                shrinkWrap: true,
+                                physics: const NeverScrollableScrollPhysics(),
+                                gridDelegate:
+                                    const SliverGridDelegateWithFixedCrossAxisCount(
+                                      crossAxisCount: 2,
+                                      crossAxisSpacing: 16,
+                                      mainAxisSpacing: 16,
+                                      childAspectRatio: 0.85,
+                                    ),
+                                itemCount: group.images.length,
+                                itemBuilder: (context, imgIndex) {
+                                  return _buildImageCard(
+                                    group.images[imgIndex],
+                                  );
+                                },
+                              ),
+                            ],
+                          );
                         },
                       ),
               ),
@@ -353,6 +443,22 @@ class _ImageGalleryScreenState extends State<ImageGalleryScreen> {
       ),
       bottomNavigationBar: const BottomNavigationWidget(currentIndex: 2),
     );
+  }
+
+  List<_DateGroup> _groupImagesByDate(List<ImageData> images) {
+    final groups = <String, List<ImageData>>{};
+    for (var img in images) {
+      final dateKey =
+          '${img.timestamp.day.toString().padLeft(2, '0')}/${img.timestamp.month.toString().padLeft(2, '0')}/${img.timestamp.year}';
+      if (!groups.containsKey(dateKey)) {
+        groups[dateKey] = [];
+      }
+      groups[dateKey]!.add(img);
+    }
+
+    return groups.entries
+        .map((e) => _DateGroup(date: e.key, images: e.value))
+        .toList();
   }
 
   Widget _buildCapsuleInput({
@@ -404,71 +510,13 @@ class _ImageGalleryScreenState extends State<ImageGalleryScreen> {
     );
   }
 
-  Widget _buildDropdownCapsule({
-    required IconData icon,
-    required String label,
-    required int? value,
-    required ValueChanged<int?> onChanged,
-    double? width,
-  }) {
-    return Container(
-      width: width,
-      height: 40,
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.7),
-        borderRadius: BorderRadius.circular(100),
-        border: Border.all(
-          color: value != null ? _primaryMint : Colors.transparent,
-          width: 1.5,
-        ),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, color: _primaryMint, size: 18),
-          const SizedBox(width: 8),
-          Expanded(
-            child: DropdownButtonHideUnderline(
-              child: DropdownButton<int>(
-                value: value,
-                hint: Text(
-                  label,
-                  style: TextStyle(
-                    color: _textLabel.withValues(alpha: 0.6),
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 0.5,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                icon: const SizedBox.shrink(), // Hide default icon
-                isExpanded: true,
-                style: TextStyle(
-                  color: _textLabel,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                  fontFamily: 'Inter',
-                ),
-                items: List.generate(24, (index) {
-                  return DropdownMenuItem(
-                    value: index,
-                    child: Text('${index.toString().padLeft(2, '0')}:00'),
-                  );
-                }),
-                onChanged: onChanged,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildResetButton() {
-    final hasFilters =
-        _selectedDate != null || startHour != null || endHour != null;
+    final isDefaultTime =
+        _startTime.hour == 18 &&
+        _startTime.minute == 0 &&
+        _endTime.hour == 22 &&
+        _endTime.minute == 0;
+    final hasFilters = _startDate != null || _endDate != null || !isDefaultTime;
 
     return Center(
       child: AnimatedOpacity(
@@ -481,7 +529,7 @@ class _ImageGalleryScreenState extends State<ImageGalleryScreen> {
             borderRadius: BorderRadius.circular(100),
             child: Container(
               height: 40,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              width: 40,
               decoration: BoxDecoration(
                 color: hasFilters
                     ? _primaryMint.withValues(alpha: 0.1)
@@ -494,30 +542,12 @@ class _ImageGalleryScreenState extends State<ImageGalleryScreen> {
                   width: 1.5,
                 ),
               ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.filter_alt_off_rounded,
-                    color: hasFilters
-                        ? _primaryMint
-                        : _textHeader.withValues(alpha: 0.5),
-                    size: 18,
-                  ),
-                  if (hasFilters) ...[
-                    const SizedBox(width: 8),
-                    Text(
-                      'Limpiar',
-                      style: TextStyle(
-                        color: _primaryMint,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 0.5,
-                      ),
-                    ),
-                  ],
-                ],
+              child: Icon(
+                Icons.cleaning_services_rounded,
+                color: hasFilters
+                    ? _primaryMint
+                    : _textHeader.withValues(alpha: 0.5),
+                size: 20,
               ),
             ),
           ),
@@ -527,6 +557,9 @@ class _ImageGalleryScreenState extends State<ImageGalleryScreen> {
   }
 
   Widget _buildImageCard(ImageData image) {
+    final String timeStr =
+        '${image.timestamp.hour > 12 ? image.timestamp.hour - 12 : (image.timestamp.hour == 0 ? 12 : image.timestamp.hour)}:${image.timestamp.minute.toString().padLeft(2, '0')} ${image.timestamp.hour >= 12 ? 'PM' : 'AM'}';
+
     return Container(
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.6),
@@ -543,7 +576,11 @@ class _ImageGalleryScreenState extends State<ImageGalleryScreen> {
             // Image Placeholder
             Expanded(
               child: Container(
-                color: Colors.grey.withValues(alpha: 0.1),
+                margin: const EdgeInsets.symmetric(horizontal: 4),
+                decoration: BoxDecoration(
+                  color: Colors.grey.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(18),
+                ),
                 child: Center(
                   child: Icon(
                     Icons.image_rounded,
@@ -560,7 +597,7 @@ class _ImageGalleryScreenState extends State<ImageGalleryScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    '${image.timestamp.hour}:${image.timestamp.minute.toString().padLeft(2, '0')}',
+                    timeStr,
                     style: TextStyle(
                       color: _textLabel.withValues(alpha: 0.6),
                       fontSize: 14,
@@ -590,5 +627,202 @@ class _ImageGalleryScreenState extends State<ImageGalleryScreen> {
 
   void _downloadImage(ImageData image) {
     _showSnackBar('Imagen descargada', _primaryMint);
+  }
+}
+
+class _DateGroup {
+  final String date;
+  final List<ImageData> images;
+
+  _DateGroup({required this.date, required this.images});
+}
+
+class _TimeInputCapsule extends StatefulWidget {
+  final TimeOfDay initialValue;
+  final ValueChanged<TimeOfDay> onChanged;
+  final double? width;
+
+  const _TimeInputCapsule({
+    required this.initialValue,
+    required this.onChanged,
+    this.width,
+  });
+
+  @override
+  State<_TimeInputCapsule> createState() => _TimeInputCapsuleState();
+}
+
+class _TimeInputCapsuleState extends State<_TimeInputCapsule> {
+  late TextEditingController _controller;
+  String? _errorText;
+  late TimeOfDay _lastValidTime;
+  final FocusNode _focusNode = FocusNode();
+
+  // Eco-Corporate Palette (Hardcoded for self-containment)
+  static const Color _primaryMint = Color(0xFF00E0A6);
+  static const Color _textLabel = Color(0xFF004C3F);
+
+  @override
+  void initState() {
+    super.initState();
+    _lastValidTime = widget.initialValue;
+    _controller = TextEditingController(
+      text: _formatTimeOfDay(widget.initialValue),
+    );
+    _focusNode.addListener(_handleFocusChange);
+  }
+
+  @override
+  void didUpdateWidget(_TimeInputCapsule oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.initialValue != oldWidget.initialValue &&
+        widget.initialValue != _lastValidTime) {
+      _lastValidTime = widget.initialValue;
+      _controller.text = _formatTimeOfDay(widget.initialValue);
+    }
+  }
+
+  @override
+  void dispose() {
+    _focusNode.removeListener(_handleFocusChange);
+    _focusNode.dispose();
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _handleFocusChange() {
+    if (!_focusNode.hasFocus) {
+      _validateAndSubmit(_controller.text);
+      if (_errorText == null) {
+        _controller.text = _formatTimeOfDay(_lastValidTime);
+      }
+    }
+  }
+
+  String _formatTimeOfDay(TimeOfDay time) {
+    final hour = time.hour.toString().padLeft(2, '0');
+    final minute = time.minute.toString().padLeft(2, '0');
+    return '$hour:$minute';
+  }
+
+  void _validateAndSubmit(String value) {
+    if (value.isEmpty) {
+      setState(() => _errorText = 'Requerido');
+      return;
+    }
+
+    final time = _parseTimeInput(value);
+    if (time == null) {
+      setState(() => _errorText = 'Inválido');
+      return;
+    }
+
+    setState(() {
+      _errorText = null;
+      _lastValidTime = time;
+    });
+    widget.onChanged(time);
+  }
+
+  TimeOfDay? _parseTimeInput(String input) {
+    final timeRegex = RegExp(r'^([0-1]?[0-9]|2[0-3]):([0-5][0-9])$');
+    final timeMatch = timeRegex.firstMatch(input);
+    if (timeMatch != null) {
+      final hour = int.parse(timeMatch.group(1)!);
+      final minute = int.parse(timeMatch.group(2)!);
+      return TimeOfDay(hour: hour, minute: minute);
+    }
+
+    final numericRegex = RegExp(r'^\d+$');
+    if (numericRegex.hasMatch(input)) {
+      final totalMinutes = int.parse(input);
+      if (totalMinutes >= 0 && totalMinutes < 1440) {
+        final hour = totalMinutes ~/ 60;
+        final minute = totalMinutes % 60;
+        return TimeOfDay(hour: hour, minute: minute);
+      }
+    }
+    return null;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: widget.width,
+          height: 40,
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.7),
+            borderRadius: BorderRadius.circular(100),
+            border: Border.all(
+              color: _errorText != null
+                  ? Colors.red.withValues(alpha: 0.5)
+                  : (_focusNode.hasFocus ? _primaryMint : Colors.transparent),
+              width: 1.5,
+            ),
+          ),
+          child: Row(
+            children: [
+              const Icon(
+                Icons.access_time_rounded,
+                color: _primaryMint,
+                size: 18,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: TextField(
+                  controller: _controller,
+                  focusNode: _focusNode,
+                  decoration: InputDecoration(
+                    hintText: 'Min (90) o HH:MM',
+                    hintStyle: TextStyle(
+                      color: _textLabel.withValues(alpha: 0.4),
+                      fontSize: 10,
+                    ),
+                    border: InputBorder.none,
+                    isDense: true,
+                    contentPadding: const EdgeInsets.only(bottom: 2),
+                  ),
+                  style: GoogleFonts.inter(
+                    color: _textLabel,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                  ),
+                  keyboardType: TextInputType.datetime,
+                  textInputAction: TextInputAction.done,
+                  onSubmitted: (val) {
+                    _validateAndSubmit(val);
+                    if (_errorText == null) {
+                      _controller.text = _formatTimeOfDay(_lastValidTime);
+                    }
+                  },
+                  onChanged: (val) {
+                    if (_parseTimeInput(val) != null && _errorText != null) {
+                      setState(() => _errorText = null);
+                    }
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+        if (_errorText != null)
+          Padding(
+            padding: const EdgeInsets.only(left: 12, top: 2),
+            child: Text(
+              _errorText!,
+              style: TextStyle(
+                color: Colors.red.shade700,
+                fontSize: 9,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+      ],
+    );
   }
 }

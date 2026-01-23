@@ -234,7 +234,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       const SizedBox(height: 20),
                       Text(
-                        '© 2023 EcoGrid Technologies. v1.0.4',
+                        '© 2026 EcoGrid Technologies. v1.0.4',
                         style: TextStyle(color: _placeholderText, fontSize: 10),
                       ),
                     ],

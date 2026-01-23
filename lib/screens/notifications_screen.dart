@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../widgets/bottom_navigation_widget.dart';
 
 class NotificationsScreen extends StatelessWidget {
   const NotificationsScreen({super.key});
@@ -46,25 +45,28 @@ class NotificationsScreen extends StatelessWidget {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Color(0xFF004C3F)),
           onPressed: () {
-            if (context.mounted) {
-              context.go('/main-menu');
+            if (Navigator.canPop(context)) {
+              Navigator.pop(context);
+            } else {
+              context.go('/');
             }
           },
         ),
         iconTheme: const IconThemeData(color: Color(0xFF004C3F)),
       ),
-      body: items.isEmpty
-          ? const _EmptyState()
-          : ListView.separated(
-              padding: const EdgeInsets.all(16.0),
-              itemCount: items.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 10),
-              itemBuilder: (context, index) {
-                final item = items[index];
-                return _NotificationCard(item: item);
-              },
-            ),
-      bottomNavigationBar: const BottomNavigationWidget(currentIndex: 0),
+      body: SafeArea(
+        child: items.isEmpty
+            ? const _EmptyState()
+            : ListView.separated(
+                padding: const EdgeInsets.all(16.0),
+                itemCount: items.length,
+                separatorBuilder: (_, __) => const SizedBox(height: 10),
+                itemBuilder: (context, index) {
+                  final item = items[index];
+                  return _NotificationCard(item: item);
+                },
+              ),
+      ),
     );
   }
 }
@@ -174,10 +176,7 @@ class _NotificationCard extends StatelessWidget {
               const SizedBox(width: 8),
               Text(
                 item.time,
-                style: const TextStyle(
-                  color: Color(0xFF2E5F3D),
-                  fontSize: 12,
-                ),
+                style: const TextStyle(color: Color(0xFF2E5F3D), fontSize: 12),
               ),
             ],
           ),

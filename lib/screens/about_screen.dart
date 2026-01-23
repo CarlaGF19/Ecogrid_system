@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../widgets/bottom_navigation_widget.dart';
 import '../constants/strings.dart';
 
 // Tipografías se tomarán del Theme para mantener consistencia
@@ -48,45 +47,46 @@ class _AboutScreenState extends State<AboutScreen> {
         elevation: 0,
       ),
       backgroundColor: ecoWhite,
-      body: AnimatedOpacity(
-        opacity: _visible ? 1 : 0,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final isWide = constraints.maxWidth >= 900;
-            final horizontalPadding = isWide ? 24.0 : 16.0;
-            return SingleChildScrollView(
-              padding: EdgeInsets.symmetric(
-                horizontal: horizontalPadding,
-                vertical: 16,
-              ),
-              child: Center(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 840),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      _buildHeader(),
-                      const SizedBox(height: 16),
-                      _buildProjectDescription(),
-                      const SizedBox(height: 16),
-                      _buildTechnicalSpecs(),
-                      const SizedBox(height: 16),
-                      _buildFeatures(theme),
-                      const SizedBox(height: 16),
-                      _buildVersionInfo(),
-                      const SizedBox(height: 16),
-                      _buildCopyrightLicense(),
-                    ],
+      body: SafeArea(
+        child: AnimatedOpacity(
+          opacity: _visible ? 1 : 0,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final isWide = constraints.maxWidth >= 900;
+              final horizontalPadding = isWide ? 24.0 : 16.0;
+              return SingleChildScrollView(
+                padding: EdgeInsets.symmetric(
+                  horizontal: horizontalPadding,
+                  vertical: 16,
+                ),
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 840),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        _buildHeader(),
+                        const SizedBox(height: 16),
+                        _buildProjectDescription(),
+                        const SizedBox(height: 16),
+                        _buildTechnicalSpecs(),
+                        const SizedBox(height: 16),
+                        _buildFeatures(theme),
+                        const SizedBox(height: 16),
+                        _buildVersionInfo(),
+                        const SizedBox(height: 16),
+                        _buildCopyrightLicense(),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            );
-          },
+              );
+            },
+          ),
         ),
       ),
-      bottomNavigationBar: const BottomNavigationWidget(currentIndex: 1),
     );
   }
 

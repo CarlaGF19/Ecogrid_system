@@ -2,8 +2,8 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
-import 'sensor_dashboard_screen.dart';
-import 'main_menu_screen.dart'; // For PDFPage
+import '../widgets/bottom_navigation_widget.dart';
+import 'pdf_page.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -54,7 +54,6 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
         child: SafeArea(
-          bottom: false,
           child: SingleChildScrollView(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
             child: Column(
@@ -85,7 +84,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
       ),
-      bottomNavigationBar: _buildBottomNavigationBar(),
+      bottomNavigationBar: const BottomNavigationWidget(currentIndex: 0),
     );
   }
 
@@ -412,7 +411,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 const Text(
                   '¿Deseas eliminar este sensor de tus accesos anclados?',
                   style: TextStyle(
-                    color: _softGrey,
+                    color: Color.fromARGB(255, 255, 255, 255),
                     fontSize: 16,
                     fontWeight: FontWeight.w500,
                     fontFamily: 'Inter',
@@ -658,48 +657,6 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildBottomNavigationBar() {
-    return Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        border: Border(top: BorderSide(color: _borders, width: 1)),
-      ),
-      child: BottomNavigationBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        selectedItemColor: _mintProtagonist,
-        unselectedItemColor: _softGrey,
-        showSelectedLabels: true,
-        showUnselectedLabels: true,
-        type: BottomNavigationBarType.fixed,
-        selectedLabelStyle: const TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.w600,
-          fontFamily: 'Inter',
-        ),
-        unselectedLabelStyle: const TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.w500,
-          fontFamily: 'Inter',
-        ),
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home_filled), label: 'HOME'),
-          BottomNavigationBarItem(icon: Icon(Icons.sensors), label: 'SENSORES'),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.photo_library),
-            label: 'GALERÍA',
-          ),
-          BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'AJUSTES'),
-        ],
-        currentIndex: 0,
-        onTap: (index) {
-          if (index == 0) return;
-          // Navigation logic placeholder
-        },
       ),
     );
   }

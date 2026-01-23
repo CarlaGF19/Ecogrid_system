@@ -454,9 +454,10 @@ class _SensorDetailPageState extends State<SensorDetailPage> with WidgetsBinding
           ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
           children: [
             // 1. NUEVA SECCIÓN DE ÚLTIMA LECTURA
             _buildLastReadingDisplay(),
@@ -476,6 +477,7 @@ class _SensorDetailPageState extends State<SensorDetailPage> with WidgetsBinding
           ],
         ),
       ),
+    )
     );
   }
 

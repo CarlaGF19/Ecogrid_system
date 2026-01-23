@@ -18,7 +18,6 @@ class _LoginScreenState extends State<LoginScreen> {
   static const Color _turquoiseTechnical = Color(0xFF00B7B0);
   static const Color _forestGreenText = Color(0xFF004C3F);
   static const Color _backgroundPale = Color(0xFFF1FBF9); // #F1FBF9
-  static const Color _borderDivider = Color(0xFFE6FFF5);
   static const Color _placeholderText = Color(0xFF8BA29F); // #8BA29F
   // Sombra Eco #004C3F al 10%
   static final Color _shadowEco = const Color(

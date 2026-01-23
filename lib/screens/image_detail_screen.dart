@@ -94,7 +94,7 @@ class _ImageDetailScreenState extends State<ImageDetailScreen> {
             children: [
               Row(
                 children: [
-                  Icon(Icons.info_outline, color: Colors.purple.shade600),
+                  const Icon(Icons.info_outline, color: Color(0xFF00E0A6)),
                   const SizedBox(width: 12),
                   const Text(
                     'Información de la imagen',

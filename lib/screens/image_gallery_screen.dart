@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'image_detail_screen.dart';
@@ -15,17 +16,23 @@ class _ImageGalleryScreenState extends State<ImageGalleryScreen> {
   List<ImageData> images = [];
   bool isLoading = false;
   String? esp32Ip;
+
   // Filtros
-  int? selectedDay;
-  int? selectedMonth;
-  int? selectedYear;
+  DateTime? _selectedDate;
   int? startHour;
   int? endHour;
 
-  // Paleta del Main Menu (aplicada solo en esta pantalla)
-  static const Color _darkGreen = Color(0xFF004C3F); // Títulos, íconos
-  static const Color _mintBg = Color(0xFFE6FFF5); // Fondos suaves
-  static const Color _cryptoA = Color(0xFF00E0A6); // Acento principal
+  // Paleta Eco-Corporate (MANDATORY)
+  static const Color _bgTop = Color(0xFFFFFFFF);
+  static const Color _bgBottom = Color(0xFFF1FBF9);
+  static const Color _textHeader = Color(0xFF004C3F);
+  static const Color _primaryMint = Color(0xFF00E0A6);
+  static const Color _textLabel = Color(
+    0xFF004C3F,
+  ); // 60% opacity applied in usage
+  static const Color _shadowEco = Color(
+    0x26004C3F,
+  ); // #2600A078 aprox (using dark forest at low opacity)
 
   @override
   void initState() {
@@ -46,10 +53,9 @@ class _ImageGalleryScreenState extends State<ImageGalleryScreen> {
       isLoading = true;
     });
 
-    // Simulación de carga de imágenes (aquí iría la lógica real)
+    // Simulación de carga
     await Future.delayed(const Duration(seconds: 1));
 
-    // Imágenes de ejemplo
     setState(() {
       images = [
         ImageData(
@@ -67,12 +73,20 @@ class _ImageGalleryScreenState extends State<ImageGalleryScreen> {
           timestamp: DateTime.now().subtract(const Duration(days: 1)),
           size: '1.5 MB',
         ),
+        ImageData(
+          id: '4',
+          timestamp: DateTime.now().subtract(const Duration(days: 2)),
+          size: '2.1 MB',
+        ),
+        ImageData(
+          id: '5',
+          timestamp: DateTime.now().subtract(const Duration(days: 5)),
+          size: '1.8 MB',
+        ),
       ];
       isLoading = false;
     });
   }
-
-  // Funcionalidad de captura eliminada según requerimiento
 
   void _showSnackBar(String message, Color color) {
     ScaffoldMessenger.of(context).showSnackBar(
@@ -84,419 +98,497 @@ class _ImageGalleryScreenState extends State<ImageGalleryScreen> {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        centerTitle: true,
-        title: Text(
-          'Galería de Imágenes',
-          style: TextStyle(fontWeight: FontWeight.bold, color: _darkGreen),
-        ),
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: _darkGreen),
-          onPressed: () => Navigator.pop(context),
-        ),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.refresh, color: _darkGreen),
-            onPressed: _loadImages,
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          // Barra de filtros
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.9),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: const Color(0x4D00E0A6)),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Color(0x1A00E0A6),
-                    blurRadius: 10,
-                    offset: Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Wrap(
-                    spacing: 12,
-                    runSpacing: 8,
-                    crossAxisAlignment: WrapCrossAlignment.center,
-                    children: [
-                      Icon(Icons.calendar_today, color: _cryptoA, size: 18),
-                      const SizedBox(width: 8),
-                      _buildDayDropdown(),
-                      _buildMonthDropdown(),
-                      _buildYearDropdown(),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 12,
-                    runSpacing: 8,
-                    crossAxisAlignment: WrapCrossAlignment.center,
-                    children: [
-                      Icon(Icons.access_time, color: _cryptoA, size: 18),
-                      const SizedBox(width: 8),
-                      _buildHourDropdown(true),
-                      _buildHourDropdown(false),
-                      _buildTotalImagesPill(),
-                      OutlinedButton(
-                        style: OutlinedButton.styleFrom(
-                          side: BorderSide(color: _cryptoA),
-                          foregroundColor: _cryptoA,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 8,
-                          ),
-                          visualDensity: VisualDensity.compact,
-                        ),
-                        onPressed: _resetFilters,
-                        child: const Text('Restablecer filtros'),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          // Card grande de estadísticas eliminada por requerimiento
-
-          // Grid de imágenes
-          Expanded(
-            child: isLoading
-                ? Center(child: CircularProgressIndicator(color: _cryptoA))
-                : _filteredImages.isEmpty
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.photo_library_outlined,
-                          size: 64,
-                          color: Colors.grey.shade400,
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'No hay imágenes disponibles',
-                          style: TextStyle(
-                            fontSize: 18,
-                            color: Colors.grey.shade600,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Conecta tu dispositivo para obtener imágenes',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey.shade500,
-                          ),
-                        ),
-                      ],
-                    ),
-                  )
-                : Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: GridView.builder(
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
-                        crossAxisSpacing: 12,
-                        mainAxisSpacing: 12,
-                        // Volver al aspecto original para mantener estilo visual
-                        childAspectRatio: 0.95,
-                      ),
-                      itemCount: _filteredImages.length,
-                      itemBuilder: (context, index) {
-                        final image = _filteredImages[index];
-                        return _buildImageCard(image);
-                      },
-                    ),
-                  ),
-          ),
-        ],
-      ),
-      // Botón de captura eliminado según requerimiento
-      bottomNavigationBar: const BottomNavigationWidget(
-        currentIndex: 0,
-      ), // Índice 0 para "Home"
-    );
-  }
-
-  Widget _buildImageCard(ImageData image) {
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-      child: InkWell(
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => ImageDetailScreen(image: image),
-            ),
-          );
-        },
-        borderRadius: BorderRadius.circular(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Imagen placeholder
-            Expanded(
-              flex: 3,
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade200,
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(12),
-                    topRight: Radius.circular(12),
-                  ),
-                ),
-                child: Icon(Icons.image, size: 48, color: Colors.grey.shade400),
-              ),
-            ),
-
-            // Información de la imagen
-            Expanded(
-              flex: 1,
-              child: Padding(
-                padding: const EdgeInsets.all(10),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        '${_formatShortDate(image.timestamp)} ${_formatLocalHM(image.timestamp)}',
-                        style: const TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    Tooltip(
-                      message: 'Descargar',
-                      child: IconButton(
-                        icon: Icon(
-                          Icons.download_rounded,
-                          color: _cryptoA,
-                          size: 20,
-                        ),
-                        onPressed: () => _downloadImage(image),
-                        splashRadius: 16,
-                        padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints.tightFor(
-                          width: 26,
-                          height: 26,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  List<ImageData> get _filteredImages {
-    return images.where((img) {
-      final ts = img.timestamp;
-      final dayOk = selectedDay == null || ts.day == selectedDay;
-      final monthOk = selectedMonth == null || ts.month == selectedMonth;
-      final yearOk = selectedYear == null || ts.year == selectedYear;
-      final hourOk = (startHour == null || endHour == null)
-          ? true
-          : ts.hour >= (startHour ?? 0) && ts.hour <= (endHour ?? 23);
-      return dayOk && monthOk && yearOk && hourOk;
-    }).toList();
-  }
-
-  Widget _buildDayDropdown() {
-    final days = List<int>.generate(31, (i) => i + 1);
-    return SizedBox(
-      width: 80,
-      child: DropdownButton<int>(
-        isExpanded: true,
-        hint: const Text('Día'),
-        value: selectedDay,
-        items: days
-            .map((d) => DropdownMenuItem<int>(value: d, child: Text('$d')))
-            .toList(),
-        onChanged: (v) => setState(() => selectedDay = v),
-      ),
-    );
-  }
-
-  Widget _buildMonthDropdown() {
-    const labels = {
-      1: 'Ene',
-      2: 'Feb',
-      3: 'Mar',
-      4: 'Abr',
-      5: 'May',
-      6: 'Jun',
-      7: 'Jul',
-      8: 'Ago',
-      9: 'Sep',
-      10: 'Oct',
-      11: 'Nov',
-      12: 'Dic',
-    };
-    return SizedBox(
-      width: 90,
-      child: DropdownButton<int>(
-        isExpanded: true,
-        hint: const Text('Mes'),
-        value: selectedMonth,
-        items: labels.entries
-            .map(
-              (e) => DropdownMenuItem<int>(value: e.key, child: Text(e.value)),
-            )
-            .toList(),
-        onChanged: (v) => setState(() => selectedMonth = v),
-      ),
-    );
-  }
-
-  Widget _buildYearDropdown() {
-    final current = DateTime.now().year;
-    final years = [current - 1, current, current + 1, current + 2];
-    return SizedBox(
-      width: 90,
-      child: DropdownButton<int>(
-        isExpanded: true,
-        hint: const Text('Año'),
-        value: selectedYear,
-        items: years
-            .map((y) => DropdownMenuItem<int>(value: y, child: Text('$y')))
-            .toList(),
-        onChanged: (v) => setState(() => selectedYear = v),
-      ),
-    );
-  }
-
-  Widget _buildHourDropdown(bool isStart) {
-    final hours = List<int>.generate(24, (i) => i);
-    return SizedBox(
-      width: 100,
-      child: DropdownButton<int>(
-        isExpanded: true,
-        hint: Text(isStart ? 'Inicio' : 'Fin'),
-        value: isStart ? startHour : endHour,
-        items: hours
-            .map(
-              (h) => DropdownMenuItem<int>(
-                value: h,
-                child: Text('${h.toString().padLeft(2, '0')}:00'),
-              ),
-            )
-            .toList(),
-        onChanged: (v) => setState(() {
-          if (isStart) {
-            startHour = v;
-          } else {
-            endHour = v;
-          }
-        }),
-      ),
-    );
-  }
-
-  Widget _buildTotalImagesPill() {
-    return SizedBox(
-      width: 220,
-      height: 44,
-      child: Container(
-        decoration: BoxDecoration(
-          color: _mintBg,
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: _cryptoA, width: 1),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x1A00E0A6),
-              blurRadius: 6,
-              offset: Offset(0, 3),
-            ),
-          ],
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: 12),
-        child: Row(
-          children: [
-            Icon(Icons.photo_library_outlined, color: _cryptoA, size: 18),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                'Total de imágenes',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: _darkGreen,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: _cryptoA),
-              ),
-              child: Text(
-                '${_filteredImages.length}',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                  color: _cryptoA,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   void _resetFilters() {
     setState(() {
-      selectedDay = null;
-      selectedMonth = null;
-      selectedYear = null;
+      _selectedDate = null;
       startHour = null;
       endHour = null;
     });
   }
 
+  List<ImageData> get _filteredImages {
+    return images.where((img) {
+      final ts = img.timestamp;
+
+      // Date Filter (Single Day)
+      bool dateOk = true;
+      if (_selectedDate != null) {
+        dateOk =
+            ts.year == _selectedDate!.year &&
+            ts.month == _selectedDate!.month &&
+            ts.day == _selectedDate!.day;
+      }
+
+      // Time Range Filter
+      final hourOk = (startHour == null || endHour == null)
+          ? true
+          : ts.hour >= (startHour ?? 0) && ts.hour <= (endHour ?? 23);
+
+      return dateOk && hourOk;
+    }).toList();
+  }
+
+  Future<void> _pickDate() async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate ?? DateTime.now(),
+      firstDate: DateTime(2020),
+      lastDate: DateTime.now(),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: _textHeader,
+              onPrimary: Colors.white,
+              onSurface: _textHeader,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+
+    if (picked != null) {
+      setState(() {
+        _selectedDate = picked;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      extendBody: true, // For glassmorphism bottom nav if needed
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [_bgTop, _bgBottom],
+          ),
+        ),
+        child: SafeArea(
+          bottom: false,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 16),
+
+              // 🧱 HEADER SECTION
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Text(
+                  'Panel de Datos\nAnalíticos',
+                  style: TextStyle(
+                    fontFamily: 'Inter', // Fallback to system if not avail
+                    fontSize: 26,
+                    fontWeight: FontWeight.w800,
+                    color: _textHeader,
+                    letterSpacing: -1.0,
+                    height: 1.1,
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 16),
+
+              // ✨ FILTER PANEL (GLASSMORPHISM)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(20),
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(
+                          alpha: 0.35,
+                        ), // 35% opacity
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.6),
+                        ),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: _shadowEco,
+                            blurRadius: 20,
+                            offset: Offset(0, 10),
+                          ),
+                        ],
+                      ),
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: [
+                            // 1. Date Picker
+                            _buildCapsuleInput(
+                              icon: Icons.calendar_today_rounded,
+                              label: _selectedDate == null
+                                  ? 'Fecha'
+                                  : '${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}',
+                              onTap: _pickDate,
+                              isActive: _selectedDate != null,
+                              width: 130,
+                            ),
+                            const SizedBox(width: 8),
+
+                            // 2. Start Time
+                            _buildDropdownCapsule(
+                              icon: Icons.access_time_rounded,
+                              label: 'Inicio',
+                              value: startHour,
+                              onChanged: (v) => setState(() => startHour = v),
+                              width: 100,
+                            ),
+                            const SizedBox(width: 8),
+
+                            // 3. End Time
+                            _buildDropdownCapsule(
+                              icon: Icons.schedule_rounded,
+                              label: 'Fin',
+                              value: endHour,
+                              onChanged: (v) => setState(() => endHour = v),
+                              width: 100,
+                            ),
+                            const SizedBox(width: 8),
+
+                            // 4. Reset Button (Compact)
+                            _buildResetButton(),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 16),
+
+              // 📊 CENTRAL SECTION — SUMMARY BADGE
+              Center(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    color: _primaryMint,
+                    borderRadius: BorderRadius.circular(100),
+                    boxShadow: [
+                      BoxShadow(
+                        color: _primaryMint.withValues(alpha: 0.3),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Text(
+                    'Total: ${_filteredImages.length} imágenes',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 16),
+
+              // 🖼️ CONTENT SECTION — IMAGE GRID
+              Expanded(
+                child: isLoading
+                    ? const Center(
+                        child: CircularProgressIndicator(color: _primaryMint),
+                      )
+                    : _filteredImages.isEmpty
+                    ? Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.image_not_supported_outlined,
+                              size: 48,
+                              color: _textHeader.withValues(alpha: 0.4),
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              'No se encontraron resultados',
+                              style: TextStyle(
+                                color: _textHeader.withValues(alpha: 0.6),
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                    : GridView.builder(
+                        padding: const EdgeInsets.fromLTRB(
+                          20,
+                          0,
+                          20,
+                          100,
+                        ), // Bottom padding for nav bar
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 2,
+                              crossAxisSpacing: 16,
+                              mainAxisSpacing: 16,
+                              childAspectRatio: 0.85,
+                            ),
+                        itemCount: _filteredImages.length,
+                        itemBuilder: (context, index) {
+                          return _buildImageCard(_filteredImages[index]);
+                        },
+                      ),
+              ),
+            ],
+          ),
+        ),
+      ),
+      bottomNavigationBar: const BottomNavigationWidget(currentIndex: 2),
+    );
+  }
+
+  Widget _buildCapsuleInput({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+    bool isActive = false,
+    double? width,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(100),
+        child: Container(
+          width: width,
+          height: 40,
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.7),
+            borderRadius: BorderRadius.circular(100),
+            border: Border.all(
+              color: isActive ? _primaryMint : Colors.transparent,
+              width: 1.5,
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, color: _primaryMint, size: 18),
+              const SizedBox(width: 8),
+              Flexible(
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    color: _textLabel.withValues(alpha: isActive ? 1.0 : 0.6),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.5,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDropdownCapsule({
+    required IconData icon,
+    required String label,
+    required int? value,
+    required ValueChanged<int?> onChanged,
+    double? width,
+  }) {
+    return Container(
+      width: width,
+      height: 40,
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.7),
+        borderRadius: BorderRadius.circular(100),
+        border: Border.all(
+          color: value != null ? _primaryMint : Colors.transparent,
+          width: 1.5,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, color: _primaryMint, size: 18),
+          const SizedBox(width: 8),
+          Expanded(
+            child: DropdownButtonHideUnderline(
+              child: DropdownButton<int>(
+                value: value,
+                hint: Text(
+                  label,
+                  style: TextStyle(
+                    color: _textLabel.withValues(alpha: 0.6),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.5,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                icon: const SizedBox.shrink(), // Hide default icon
+                isExpanded: true,
+                style: TextStyle(
+                  color: _textLabel,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  fontFamily: 'Inter',
+                ),
+                items: List.generate(24, (index) {
+                  return DropdownMenuItem(
+                    value: index,
+                    child: Text('${index.toString().padLeft(2, '0')}:00'),
+                  );
+                }),
+                onChanged: onChanged,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildResetButton() {
+    final hasFilters =
+        _selectedDate != null || startHour != null || endHour != null;
+
+    return Center(
+      child: AnimatedOpacity(
+        duration: const Duration(milliseconds: 200),
+        opacity: hasFilters ? 1.0 : 0.5,
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: hasFilters ? _resetFilters : null,
+            borderRadius: BorderRadius.circular(100),
+            child: Container(
+              height: 40,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              decoration: BoxDecoration(
+                color: hasFilters
+                    ? _primaryMint.withValues(alpha: 0.1)
+                    : Colors.transparent,
+                borderRadius: BorderRadius.circular(100),
+                border: Border.all(
+                  color: hasFilters
+                      ? _primaryMint
+                      : _textHeader.withValues(alpha: 0.3),
+                  width: 1.5,
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.filter_alt_off_rounded,
+                    color: hasFilters
+                        ? _primaryMint
+                        : _textHeader.withValues(alpha: 0.5),
+                    size: 18,
+                  ),
+                  if (hasFilters) ...[
+                    const SizedBox(width: 8),
+                    Text(
+                      'Limpiar',
+                      style: TextStyle(
+                        color: _primaryMint,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildImageCard(ImageData image) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.6),
+        borderRadius: BorderRadius.circular(22),
+        boxShadow: const [
+          BoxShadow(color: _shadowEco, blurRadius: 20, offset: Offset(0, 8)),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(22),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Image Placeholder
+            Expanded(
+              child: Container(
+                color: Colors.grey.withValues(alpha: 0.1),
+                child: Center(
+                  child: Icon(
+                    Icons.image_rounded,
+                    size: 48,
+                    color: _primaryMint.withValues(alpha: 0.5),
+                  ),
+                ),
+              ),
+            ),
+            // Footer
+            Padding(
+              padding: const EdgeInsets.all(12),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    '${image.timestamp.hour}:${image.timestamp.minute.toString().padLeft(2, '0')}',
+                    style: TextStyle(
+                      color: _textLabel.withValues(alpha: 0.6),
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  InkWell(
+                    onTap: () => _downloadImage(image),
+                    borderRadius: BorderRadius.circular(20),
+                    child: const Padding(
+                      padding: EdgeInsets.all(4),
+                      child: Icon(
+                        Icons.file_download_outlined,
+                        color: _primaryMint,
+                        size: 20,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   void _downloadImage(ImageData image) {
-    // UI de descarga: en esta fase mostramos confirmación
-    _showSnackBar('Imagen descargada con éxito', _cryptoA);
-  }
-
-  String _formatShortDate(DateTime dt) {
-    final yy = (dt.year % 100).toString().padLeft(2, '0');
-    // Día y mes sin ceros a la izquierda para coincidir con "2/11/25"
-    return '${dt.day}/${dt.month}/$yy';
-  }
-
-  String _formatLocalHM(DateTime dt) {
-    final local = dt.toLocal();
-    final h = local.hour.toString().padLeft(2, '0');
-    final m = local.minute.toString().padLeft(2, '0');
-    return '$h:$m';
+    _showSnackBar('Imagen descargada', _primaryMint);
   }
 }

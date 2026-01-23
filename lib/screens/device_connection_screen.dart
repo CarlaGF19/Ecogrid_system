@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'device_config_screen.dart';
-import '../widgets/bottom_navigation_widget.dart';
 
 class DeviceConnectionScreen extends StatefulWidget {
   const DeviceConnectionScreen({super.key});
@@ -37,23 +36,24 @@ class _DeviceConnectionScreenState extends State<DeviceConnectionScreen> {
           ),
         ),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(12.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildConnectionStatus(),
-            const SizedBox(height: 16),
-            _buildIpConfigButton(),
-            const SizedBox(height: 16),
-            _buildConnectionStatistics(),
-            const SizedBox(
-              height: 16,
-            ), // Espacio adicional para evitar overflow
-          ],
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(12.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildConnectionStatus(),
+              const SizedBox(height: 16),
+              _buildIpConfigButton(),
+              const SizedBox(height: 16),
+              _buildConnectionStatistics(),
+              const SizedBox(
+                height: 16,
+              ), // Espacio adicional para evitar overflow
+            ],
+          ),
         ),
       ),
-      bottomNavigationBar: const BottomNavigationWidget(currentIndex: 2),
     );
   }
 
@@ -105,7 +105,7 @@ class _DeviceConnectionScreenState extends State<DeviceConnectionScreen> {
             ),
             _buildStatusItem(
               icon: Icons.refresh,
-              color: Colors.purple,
+              color: const Color(0xFF00B7B0), // Turquoise support
               title: 'Última comunicación',
               value: lastCommunication,
             ),

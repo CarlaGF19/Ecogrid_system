@@ -101,6 +101,7 @@ class _SensorDashboardScreenState extends State<SensorDashboardScreen> {
       appBar: AppBar(
         backgroundColor: Color.fromARGB(255, 255, 255, 255),
         elevation: 2,
+        automaticallyImplyLeading: false, // Root tab: no back arrow
         title: const Text(
           'Dashboard de Sensores',
           style: TextStyle(
@@ -108,67 +109,62 @@ class _SensorDashboardScreenState extends State<SensorDashboardScreen> {
             fontWeight: FontWeight.w600,
           ),
         ),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF00E0A6)),
-          onPressed: () {
-            // Usar pop para evitar conflictos con Navigator.push desde MainMenu
-            Navigator.pop(context);
-          },
-        ),
         iconTheme: const IconThemeData(color: Color(0xFF00E0A6)),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            // Eliminada barra de entrada de año/hora
-            Expanded(
-              child: GridView.count(
-                crossAxisCount: screenWidth < 360
-                    ? 1
-                    : (screenWidth < 768 ? 2 : 3),
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 12,
-                childAspectRatio: aspect,
-                children: [
-                  SensorCardWithImage(
-                    key: const ValueKey('sensor-card-temperatura'),
-                    titulo: "TEMPERATURA",
-                    imagePath: "assets/images/sensor_dashboard/s_temp.png",
-                    onTap: () => _abrirSensor("temperatura", "Temperatura"),
-                  ),
-                  SensorCardWithImage(
-                    key: const ValueKey('sensor-card-humedad'),
-                    titulo: "HUMEDAD",
-                    imagePath: "assets/images/sensor_dashboard/s_humedad.png",
-                    onTap: () => _abrirSensor("humedad", "Humedad"),
-                  ),
-                  SensorCardWithImage(
-                    key: const ValueKey('sensor-card-ph'),
-                    titulo: "PH",
-                    imagePath: "assets/images/sensor_dashboard/s_ph.png",
-                    onTap: () => _abrirSensor("ph", "pH"),
-                  ),
-                  SensorCardWithImage(
-                    key: const ValueKey('sensor-card-tds'),
-                    titulo: "TDS",
-                    imagePath: "assets/images/sensor_dashboard/s_tds.png",
-                    onTap: () => _abrirSensor("tds", "TDS"),
-                  ),
-                  SensorCardWithImage(
-                    key: const ValueKey('sensor-card-uv'),
-                    titulo: "UV",
-                    imagePath: "assets/images/sensor_dashboard/s_uv.png",
-                    onTap: () => _abrirSensor("uv", "UV"),
-                  ),
-                ],
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            children: [
+              // Eliminada barra de entrada de año/hora
+              Expanded(
+                child: GridView.count(
+                  crossAxisCount: screenWidth < 360
+                      ? 1
+                      : (screenWidth < 768 ? 2 : 3),
+                  crossAxisSpacing: 12,
+                  mainAxisSpacing: 12,
+                  childAspectRatio: aspect,
+                  children: [
+                    SensorCardWithImage(
+                      key: const ValueKey('sensor-card-temperatura'),
+                      titulo: "TEMPERATURA",
+                      imagePath: "assets/images/sensor_dashboard/s_temp.png",
+                      onTap: () => _abrirSensor("temperatura", "Temperatura"),
+                    ),
+                    SensorCardWithImage(
+                      key: const ValueKey('sensor-card-humedad'),
+                      titulo: "HUMEDAD",
+                      imagePath: "assets/images/sensor_dashboard/s_humedad.png",
+                      onTap: () => _abrirSensor("humedad", "Humedad"),
+                    ),
+                    SensorCardWithImage(
+                      key: const ValueKey('sensor-card-ph'),
+                      titulo: "PH",
+                      imagePath: "assets/images/sensor_dashboard/s_ph.png",
+                      onTap: () => _abrirSensor("ph", "pH"),
+                    ),
+                    SensorCardWithImage(
+                      key: const ValueKey('sensor-card-tds'),
+                      titulo: "TDS",
+                      imagePath: "assets/images/sensor_dashboard/s_tds.png",
+                      onTap: () => _abrirSensor("tds", "TDS"),
+                    ),
+                    SensorCardWithImage(
+                      key: const ValueKey('sensor-card-uv'),
+                      titulo: "UV",
+                      imagePath: "assets/images/sensor_dashboard/s_uv.png",
+                      onTap: () => _abrirSensor("uv", "UV"),
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
       // Mantener el BottomNavigation, resaltando Home para coherencia
-      bottomNavigationBar: const BottomNavigationWidget(currentIndex: 0),
+      bottomNavigationBar: const BottomNavigationWidget(currentIndex: 1),
     );
   }
 }

@@ -3,7 +3,6 @@ import 'package:go_router/go_router.dart';
 import 'screens/welcome_screen.dart';
 import 'screens/splash_screen.dart';
 import 'screens/device_config_screen.dart';
-import 'screens/main_menu_screen.dart';
 import 'screens/sensor_dashboard_screen.dart';
 import 'screens/sensor_detail_page.dart';
 import 'screens/image_gallery_screen.dart';
@@ -33,10 +32,6 @@ final GoRouter _router = GoRouter(
     GoRoute(
       path: '/ip',
       builder: (context, state) => const DeviceConfigScreen(),
-    ),
-    GoRoute(
-      path: '/main-menu',
-      builder: (context, state) => const MainMenuScreen(),
     ),
     GoRoute(path: '/app-home', builder: (context, state) => const HomeScreen()),
     GoRoute(
@@ -88,6 +83,20 @@ class MainApp extends StatelessWidget {
     return MaterialApp.router(
       debugShowCheckedModeBanner: false,
       routerConfig: _router,
+      theme: ThemeData(
+        useMaterial3: true,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFF00E0A6),
+          primary: const Color(0xFF00E0A6),
+          secondary: const Color(0xFF004C3F),
+          surface: const Color(0xFFF1FBF9),
+        ),
+        scaffoldBackgroundColor: const Color(0xFFF1FBF9),
+        primaryColor: const Color(0xFF00E0A6),
+        // Eliminate default purple splash/highlight
+        splashColor: const Color(0xFF00E0A6).withValues(alpha: 0.1),
+        highlightColor: const Color(0xFF00E0A6).withValues(alpha: 0.1),
+      ),
     );
   }
 }

@@ -54,7 +54,7 @@ class WelcomeScreen extends StatelessWidget {
                 height: 56,
                 child: ElevatedButton(
                   onPressed: () {
-                    context.go('/main-menu');
+                    context.go('/login');
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.green,

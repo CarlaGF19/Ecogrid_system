@@ -2,15 +2,12 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-/// Widget de navegación inferior personalizado con animaciones optimizadas
-/// y características de accesibilidad mejoradas
+/// Widget de navegación inferior personalizado con estilo Eco-Corporate
+/// Diseño Glassmorphism minimalista con paleta de colores estricta
 class BottomNavigationWidget extends StatefulWidget {
   final int currentIndex;
-  
-  const BottomNavigationWidget({
-    super.key,
-    required this.currentIndex,
-  });
+
+  const BottomNavigationWidget({super.key, required this.currentIndex});
 
   @override
   State<BottomNavigationWidget> createState() => _BottomNavigationWidgetState();
@@ -18,46 +15,53 @@ class BottomNavigationWidget extends StatefulWidget {
 
 class _BottomNavigationWidgetState extends State<BottomNavigationWidget>
     with TickerProviderStateMixin {
-  
-  // Controladores de animación optimizados
+  // Controladores de animación
   late AnimationController _scaleController;
-  late AnimationController _glowController;
   late Animation<double> _scaleAnimation;
-  late Animation<double> _glowAnimation;
-  
+
   // Estado de interacción
   int _tappedIndex = -1;
   bool _isAnimating = false;
-  
-  // Configuración de tema y colores
-  static const Color _primaryGreen = Color(0xFF56AB91);
-  static const Color _mintGreen = Color(0xFFA8E6CF);
-  static const Color _activeIconColor = Color(0xFF2E7D32);
-  static const Color _inactiveIconColor = Color(0xFFFFFFFF);
-  
-  // Configuración de animaciones optimizada para mayor velocidad
-  static const Duration _tapAnimationDuration = Duration(milliseconds: 100);  // Reducido de 150 a 100
-  static const Duration _glowAnimationDuration = Duration(milliseconds: 1500);  // Reducido de 2000 a 1500
-  
-  // Datos de navegación
+
+  // PALETA DE COLORES (MANDATORY — EcoGrid System)
+  static const Color _primaryMint = Color(0xFF00E0A6); // Active state
+  // ignore: unused_field
+  static const Color _turquoiseSupport = Color(0xFF00B7B0); // Subtle accents
+  static const Color _darkForest = Color(0xFF004C3F); // Inactive icons/text
+  static const Color _baseBackground = Color(0xFFF1FBF9); // Base Background
+  static const Color _borderColor = Color(0xFFE6FFF5); // Border / Divider
+  static const Color _shadowEco = Color(
+    0x26004C3F,
+  ); // Dark Forest at ~15% opacity
+
+  // Configuración de animaciones
+  static const Duration _tapAnimationDuration = Duration(milliseconds: 100);
+
+  // Datos de navegación (NO MODIFICAR)
   static const List<NavigationItem> _navigationItems = [
     NavigationItem(
-      icon: Icons.home_rounded,
-      label: 'Home',
-      route: '/main-menu',
+      icon: Icons.home_filled,
+      label: 'HOME',
+      route: '/app-home',
       semanticLabel: 'Ir a la página de inicio',
     ),
     NavigationItem(
-      icon: Icons.info_rounded,
-      label: 'Info',
-      route: '/about',
-      semanticLabel: 'Ver información de la aplicación',
+      icon: Icons.sensors,
+      label: 'SENSORES',
+      route: '/home',
+      semanticLabel: 'Ver dashboard de sensores',
+    ),
+    NavigationItem(
+      icon: Icons.photo_library,
+      label: 'GALERÍA',
+      route: '/image-gallery',
+      semanticLabel: 'Ver galería de imágenes',
     ),
     NavigationItem(
       icon: Icons.settings,
-      label: 'Device',
-      route: '/device-connection',
-      semanticLabel: 'Conectar con dispositivo',
+      label: 'AJUSTES',
+      route: '/ip',
+      semanticLabel: 'Configuración del dispositivo',
     ),
   ];
 
@@ -65,7 +69,6 @@ class _BottomNavigationWidgetState extends State<BottomNavigationWidget>
   void initState() {
     super.initState();
     _initializeAnimations();
-    _startGlowAnimationIfNeeded();
   }
 
   @override
@@ -74,66 +77,21 @@ class _BottomNavigationWidgetState extends State<BottomNavigationWidget>
     super.dispose();
   }
 
-  @override
-  void didUpdateWidget(BottomNavigationWidget oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.currentIndex != oldWidget.currentIndex) {
-      _handleIndexChange();
-    }
-  }
-
-  /// Inicializa las animaciones con configuración optimizada
+  /// Inicializa las animaciones
   void _initializeAnimations() {
     // Animación de escala para feedback táctil
     _scaleController = AnimationController(
       duration: _tapAnimationDuration,
       vsync: this,
     );
-    _scaleAnimation = Tween<double>(
-      begin: 1.0,
-      end: 0.95,
-    ).animate(CurvedAnimation(
-      parent: _scaleController,
-      curve: Curves.easeInOut,
-    ));
-
-    // Animación de resplandor para elemento activo
-    _glowController = AnimationController(
-      duration: _glowAnimationDuration,
-      vsync: this,
+    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.95).animate(
+      CurvedAnimation(parent: _scaleController, curve: Curves.easeInOut),
     );
-    _glowAnimation = Tween<double>(
-      begin: 0.4,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _glowController,
-      curve: Curves.easeInOut,
-    ));
   }
 
   /// Libera recursos de animación
   void _disposeAnimations() {
     _scaleController.dispose();
-    _glowController.dispose();
-  }
-
-  /// Inicia la animación de resplandor si es necesario
-  void _startGlowAnimationIfNeeded() {
-    if (_isValidIndex(widget.currentIndex)) {
-      _glowController.repeat(reverse: true);
-    }
-  }
-
-  /// Maneja el cambio de índice
-  void _handleIndexChange() {
-    if (_isValidIndex(widget.currentIndex)) {
-      if (!_glowController.isAnimating) {
-        _glowController.repeat(reverse: true);
-      }
-    } else {
-      _glowController.stop();
-      _glowController.reset();
-    }
   }
 
   /// Verifica si el índice es válido
@@ -149,9 +107,14 @@ class _BottomNavigationWidgetState extends State<BottomNavigationWidget>
         final screenWidth = constraints.maxWidth;
         final containerHeight = _calculateContainerHeight(screenWidth);
         final horizontalMargin = _calculateHorizontalMargin(screenWidth);
-        
+
         return Container(
-          margin: EdgeInsets.fromLTRB(horizontalMargin, 0, horizontalMargin, 16),
+          margin: EdgeInsets.fromLTRB(
+            horizontalMargin,
+            0,
+            horizontalMargin,
+            20,
+          ), // Slight increase in bottom margin
           height: containerHeight,
           child: _buildNavigationContainer(),
         );
@@ -161,16 +124,16 @@ class _BottomNavigationWidgetState extends State<BottomNavigationWidget>
 
   /// Calcula la altura del contenedor basada en el ancho de pantalla
   double _calculateContainerHeight(double screenWidth) {
-    if (screenWidth < 360) return 70;  // Aumentado de 65 a 70
-    if (screenWidth < 600) return 75;  // Aumentado de 70 a 75
-    return 80;  // Aumentado de 75 a 80
+    if (screenWidth < 360) return 65;
+    if (screenWidth < 600) return 70;
+    return 75;
   }
 
   /// Calcula el margen horizontal basado en el ancho de pantalla
   double _calculateHorizontalMargin(double screenWidth) {
-    if (screenWidth < 360) return 13;  // Aumentado de 12 a 13 (+1px cada lado = -2px ancho total)
-    if (screenWidth < 600) return 17;  // Aumentado de 16 a 17 (+1px cada lado = -2px ancho total)
-    return 21;  // Aumentado de 20 a 21 (+1px cada lado = -2px ancho total)
+    if (screenWidth < 360) return 16;
+    if (screenWidth < 600) return 24;
+    return 32; // More padding for floating effect
   }
 
   /// Construye el contenedor principal de navegación
@@ -178,13 +141,15 @@ class _BottomNavigationWidgetState extends State<BottomNavigationWidget>
     return Container(
       decoration: _buildContainerDecoration(),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(25),
+        borderRadius: BorderRadius.circular(40), // More rounded (pill-like)
         child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5), // Subtle blur
           child: Container(
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(25),
+              color: _baseBackground.withValues(
+                alpha: 0.90,
+              ), // High opacity for readability
+              borderRadius: BorderRadius.circular(40),
             ),
             child: _buildNavigationRow(),
           ),
@@ -196,31 +161,14 @@ class _BottomNavigationWidgetState extends State<BottomNavigationWidget>
   /// Construye la decoración del contenedor
   BoxDecoration _buildContainerDecoration() {
     return BoxDecoration(
-      gradient: LinearGradient(
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-        colors: [
-          _primaryGreen.withValues(alpha: 0.95),
-          _mintGreen.withValues(alpha: 0.9),
-        ],
-      ),
-      borderRadius: BorderRadius.circular(25),
-      border: Border.all(
-        color: Colors.white.withValues(alpha: 0.3),
-        width: 1,
-      ),
-      boxShadow: [
+      borderRadius: BorderRadius.circular(40),
+      border: Border.all(color: _borderColor, width: 1.5),
+      boxShadow: const [
         BoxShadow(
-          color: _primaryGreen.withValues(alpha: 0.3),
-          blurRadius: 15,
-          offset: const Offset(0, 5),
-          spreadRadius: 0,
-        ),
-        BoxShadow(
-          color: Colors.black.withValues(alpha: 0.1),
-          blurRadius: 8,
-          offset: const Offset(0, 2),
-          spreadRadius: 0,
+          color: _shadowEco,
+          blurRadius: 20, // Medium blur
+          offset: Offset(0, 8), // Vertical offset
+          spreadRadius: -2,
         ),
       ],
     );
@@ -253,6 +201,7 @@ class _BottomNavigationWidgetState extends State<BottomNavigationWidget>
         button: true,
         selected: isSelected,
         child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
           onTap: () => _handleItemTap(index),
           onTapDown: (_) => _handleTapDown(index),
           onTapUp: (_) => _handleTapUp(),
@@ -260,7 +209,9 @@ class _BottomNavigationWidgetState extends State<BottomNavigationWidget>
           child: AnimatedBuilder(
             animation: _scaleAnimation,
             builder: (context, child) {
-              final scale = (_tappedIndex == index) ? _scaleAnimation.value : 1.0;
+              final scale = (_tappedIndex == index)
+                  ? _scaleAnimation.value
+                  : 1.0;
               return Transform.scale(
                 scale: scale,
                 child: _buildItemContent(item, index, isSelected),
@@ -275,71 +226,31 @@ class _BottomNavigationWidgetState extends State<BottomNavigationWidget>
   /// Construye el contenido del elemento de navegación
   Widget _buildItemContent(NavigationItem item, int index, bool isSelected) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),  // Reducido de 12 a 8
+      height: double.infinity,
+      color: Colors.transparent, // Hit area
       child: Column(
-        mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          _buildIconContainer(item.icon, isSelected),
-          // Etiqueta removida para mostrar solo iconos
+          Icon(
+            item.icon,
+            color: isSelected
+                ? _primaryMint
+                : _darkForest.withValues(alpha: 0.6),
+            size: 26,
+          ),
+          // Subtle active indicator
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeOut,
+            margin: const EdgeInsets.only(top: 6),
+            width: isSelected ? 4 : 0,
+            height: isSelected ? 4 : 0,
+            decoration: const BoxDecoration(
+              color: _primaryMint,
+              shape: BoxShape.circle,
+            ),
+          ),
         ],
-      ),
-    );
-  }
-
-  /// Construye el contenedor del icono con efectos
-  Widget _buildIconContainer(IconData icon, bool isSelected) {
-    return AnimatedBuilder(
-      animation: _glowAnimation,
-      builder: (context, child) {
-        return Container(
-          padding: const EdgeInsets.all(6),  // Reducido de 8 a 6
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            color: isSelected 
-                ? Colors.white.withValues(alpha: 0.25)
-                : Colors.transparent,
-            boxShadow: isSelected ? [
-              BoxShadow(
-                color: Colors.white.withValues(alpha: _glowAnimation.value * 0.6),
-                blurRadius: 8 * _glowAnimation.value,
-                spreadRadius: 1 * _glowAnimation.value,
-              ),
-              BoxShadow(
-                color: _activeIconColor.withValues(alpha: _glowAnimation.value * 0.3),
-                blurRadius: 12 * _glowAnimation.value,
-                spreadRadius: 1 * _glowAnimation.value,
-              ),
-            ] : null,
-          ),
-          child: Icon(
-            icon,
-            color: isSelected 
-                ? _inactiveIconColor
-                : _inactiveIconColor.withValues(alpha: 0.7),
-            size: 22,
-          ),
-        );
-      },
-    );
-  }
-
-  /// Construye la etiqueta del elemento
-  Widget _buildLabel(String label, bool isSelected) {
-    return AnimatedDefaultTextStyle(
-      duration: const Duration(milliseconds: 200),
-      style: TextStyle(
-        color: isSelected 
-            ? _inactiveIconColor
-            : _inactiveIconColor.withValues(alpha: 0.7),
-        fontSize: 10,
-        fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-      ),
-      child: Text(
-        label,
-        textAlign: TextAlign.center,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
       ),
     );
   }
@@ -351,7 +262,6 @@ class _BottomNavigationWidgetState extends State<BottomNavigationWidget>
         _tappedIndex = index;
         _isAnimating = true;
       });
-      // Iniciar animación de escala de forma no bloqueante
       _scaleController.forward();
     }
   }
@@ -388,20 +298,10 @@ class _BottomNavigationWidgetState extends State<BottomNavigationWidget>
   void _handleItemTap(int index) {
     if (!_isValidIndex(index)) return;
 
-    // Navegar inmediatamente sin esperar animaciones
     final route = _navigationItems[index].route;
     if (mounted) {
       context.go(route);
     }
-
-    // Proporcionar feedback háptico después de la navegación
-    _provideFeedback();
-  }
-
-  /// Proporciona feedback háptico
-  void _provideFeedback() {
-    // Implementar feedback háptico si es necesario
-    // HapticFeedback.lightImpact();
   }
 }
 

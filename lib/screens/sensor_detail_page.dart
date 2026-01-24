@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../services/connection_manager.dart';
 import '../services/lifecycle_manager.dart';
 import '../components/connection_status.dart';
+import '../styles/app_styles.dart';
 
 class SensorDetailPage extends StatefulWidget {
   final String? esp32Ip;
@@ -24,7 +25,8 @@ class SensorDetailPage extends StatefulWidget {
   State<SensorDetailPage> createState() => _SensorDetailPageState();
 }
 
-class _SensorDetailPageState extends State<SensorDetailPage> with WidgetsBindingObserver {
+class _SensorDetailPageState extends State<SensorDetailPage>
+    with WidgetsBindingObserver {
   // --- VARIABLES DE ESTADO ---
   List<double> valores = []; // Para el gráfico
   Timer? timer;
@@ -72,9 +74,9 @@ class _SensorDetailPageState extends State<SensorDetailPage> with WidgetsBinding
   // Initialize connection manager for automatic updates
   Future<void> _initializeConnectionManager() async {
     await _loadApiBaseUrl();
-    
+
     _connectionManager = ConnectionManager();
-    
+
     // Listen to connection status changes
     _connectionManager.statusStream.listen((status) {
       if (mounted) {
@@ -83,12 +85,12 @@ class _SensorDetailPageState extends State<SensorDetailPage> with WidgetsBinding
         });
       }
     });
-    
+
     // Listen to data updates
     _connectionManager.dataStream.listen((data) {
       _handleAutomaticDataUpdate(data);
     });
-    
+
     // Initialize connection
     await _connectionManager.initialize(
       apiBaseUrl: apiBaseUrl,
@@ -103,10 +105,10 @@ class _SensorDetailPageState extends State<SensorDetailPage> with WidgetsBinding
   void _handleAutomaticDataUpdate(Map<String, dynamic> data) {
     debugPrint('=== AUTOMATIC DATA UPDATE RECEIVED ===');
     debugPrint('Data: $data');
-    
+
     setState(() {
       _lastAutoUpdate = DateTime.now();
-      
+
       // Update sensor values based on data source
       if (data['source'] == 'esp32') {
         // ESP32 direct data
@@ -114,7 +116,7 @@ class _SensorDetailPageState extends State<SensorDetailPage> with WidgetsBinding
         _ultimoValor = valor;
         _ultimaFecha = "";
         _ultimaHora = "";
-        
+
         // Update chart data
         valores.add(valor);
         if (valores.length > 15) valores.removeAt(0);
@@ -158,7 +160,7 @@ class _SensorDetailPageState extends State<SensorDetailPage> with WidgetsBinding
       // Automatic updates are handled by connection manager
       return;
     }
-    
+
     // Manual refresh or fallback logic
     // Si ya está actualizando, no hace nada
     if (_isRefreshing) return;
@@ -185,7 +187,11 @@ class _SensorDetailPageState extends State<SensorDetailPage> with WidgetsBinding
           debugPrint("ERROR: No hay configuración de conexión");
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('No hay conexión configurada. Configure IP o API URL.')),
+              const SnackBar(
+                content: Text(
+                  'No hay conexión configurada. Configure IP o API URL.',
+                ),
+              ),
             );
           }
         }
@@ -193,9 +199,9 @@ class _SensorDetailPageState extends State<SensorDetailPage> with WidgetsBinding
     } catch (e) {
       debugPrint("Error actualizando datos: $e");
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error de conexión: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error de conexión: $e')));
       }
     }
 
@@ -216,22 +222,25 @@ class _SensorDetailPageState extends State<SensorDetailPage> with WidgetsBinding
       for (final t in tipos) {
         final uri = Uri.parse('$apiBaseUrl?endpoint=history&type=$t&limit=15');
         debugPrint('Solicitando historial: $uri');
-        
+
         try {
           final response = await http
               .get(uri)
               .timeout(const Duration(seconds: 10));
-          
+
           debugPrint('Respuesta historial: Status ${response.statusCode}');
-          debugPrint('Body: ${response.body.substring(0, response.body.length > 200 ? 200 : response.body.length)}');
-          
+          debugPrint(
+            'Body: ${response.body.substring(0, response.body.length > 200 ? 200 : response.body.length)}',
+          );
+
           if (response.statusCode == 200) {
             final data = json.decode(response.body);
             debugPrint('Datos decodificados: $data');
-            
-            final List<dynamic> points = (data['points'] ?? []) as List<dynamic>;
+
+            final List<dynamic> points =
+                (data['points'] ?? []) as List<dynamic>;
             debugPrint('Puntos encontrados: ${points.length}');
-            
+
             if (points.isNotEmpty) {
               serie = points
                   .map((p) => ((p['value'] ?? 0) as num).toDouble())
@@ -251,7 +260,7 @@ class _SensorDetailPageState extends State<SensorDetailPage> with WidgetsBinding
       }
 
       debugPrint('Valores finales del gráfico: $serie');
-      
+
       if (mounted) {
         setState(() {
           valores = serie;
@@ -311,7 +320,7 @@ class _SensorDetailPageState extends State<SensorDetailPage> with WidgetsBinding
   // Update sensor values from API data
   void _updateSensorValuesFromApi(Map<String, dynamic> data) {
     if (data['fecha'] == null) return;
-    
+
     double tempValor = 0.0;
     switch (widget.tipo) {
       case "temperatura":
@@ -333,7 +342,7 @@ class _SensorDetailPageState extends State<SensorDetailPage> with WidgetsBinding
         tempValor = (data["uv"] ?? 0).toDouble();
         break;
     }
-    
+
     _ultimoValor = tempValor;
     _ultimaFecha = data['fecha'] ?? "";
     _ultimaHora = data['hora'] ?? "";
@@ -345,18 +354,18 @@ class _SensorDetailPageState extends State<SensorDetailPage> with WidgetsBinding
       debugPrint("=== FETCH ESP32 DIRECTO ===");
       final url = "${widget.esp32Ip}/${widget.tipo}";
       debugPrint('Solicitando a ESP32: $url');
-      
-      final response = await http.get(
-        Uri.parse(url),
-      ).timeout(const Duration(seconds: 10));
-      
+
+      final response = await http
+          .get(Uri.parse(url))
+          .timeout(const Duration(seconds: 10));
+
       debugPrint('Respuesta ESP32: Status ${response.statusCode}');
       debugPrint('Body: ${response.body}');
-      
+
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         debugPrint('Datos ESP32 decodificados: $data');
-        
+
         double valor = 0;
         switch (widget.tipo) {
           case "temperatura":
@@ -376,9 +385,9 @@ class _SensorDetailPageState extends State<SensorDetailPage> with WidgetsBinding
             valor = (data["uv"] ?? 0).toDouble();
             break;
         }
-        
+
         debugPrint('Valor extraído: $valor');
-        
+
         if (mounted) {
           setState(() {
             _ultimoValor = valor; // Actualiza el valor
@@ -387,7 +396,7 @@ class _SensorDetailPageState extends State<SensorDetailPage> with WidgetsBinding
             valores.add(valor); // Actualiza el gráfico
             if (valores.length > 15) valores.removeAt(0);
           });
-          
+
           debugPrint('Estado actualizado - valores: $valores');
         }
       } else {
@@ -396,9 +405,9 @@ class _SensorDetailPageState extends State<SensorDetailPage> with WidgetsBinding
     } catch (e) {
       debugPrint("Error en _fetchEsp32Reading: $e");
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error conectando a ESP32: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error conectando a ESP32: $e')));
       }
     }
   }
@@ -424,7 +433,7 @@ class _SensorDetailPageState extends State<SensorDetailPage> with WidgetsBinding
   String _formatTimeAgo(DateTime time) {
     final now = DateTime.now();
     final difference = now.difference(time);
-    
+
     if (difference.inDays > 0) {
       return '${difference.inDays}d ${difference.inHours % 24}h';
     } else if (difference.inHours > 0) {
@@ -441,6 +450,7 @@ class _SensorDetailPageState extends State<SensorDetailPage> with WidgetsBinding
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
         title: Text(widget.titulo),
         actions: [
@@ -454,30 +464,33 @@ class _SensorDetailPageState extends State<SensorDetailPage> with WidgetsBinding
           ),
         ],
       ),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-          children: [
-            // 1. NUEVA SECCIÓN DE ÚLTIMA LECTURA
-            _buildLastReadingDisplay(),
+      body: Container(
+        decoration: AppStyles.internalScreenBackground,
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              children: [
+                // 1. NUEVA SECCIÓN DE ÚLTIMA LECTURA
+                _buildLastReadingDisplay(),
 
-            const SizedBox(height: 20),
+                const SizedBox(height: 20),
 
-            // 2. GRÁFICO EN TAMAÑO FIJO (1/4 de pantalla aprox)
-            _buildChartDisplay(),
+                // 2. GRÁFICO EN TAMAÑO FIJO (1/4 de pantalla aprox)
+                _buildChartDisplay(),
 
-            // Empuja el botón al fondo
-            const Spacer(),
+                // Empuja el botón al fondo
+                const Spacer(),
 
-            // 3. BOTÓN DE ACTUALIZAR
-            _buildRefreshButton(),
+                // 3. BOTÓN DE ACTUALIZAR
+                _buildRefreshButton(),
 
-            const SizedBox(height: 20),
-          ],
+                const SizedBox(height: 20),
+              ],
+            ),
+          ),
         ),
       ),
-    )
     );
   }
 
@@ -491,14 +504,7 @@ class _SensorDetailPageState extends State<SensorDetailPage> with WidgetsBinding
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              "Última Lectura",
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-                color: Colors.grey[700],
-              ),
-            ),
+            const Text("ÚLTIMA LECTURA", style: AppStyles.sectionSubtitle),
             const SizedBox(height: 10),
             // Valor grande
             Text(

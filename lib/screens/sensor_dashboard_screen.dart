@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import '../styles/app_styles.dart';
 import 'sensor_detail_page.dart';
 import '../widgets/bottom_navigation_widget.dart';
 
@@ -111,55 +113,59 @@ class _SensorDashboardScreenState extends State<SensorDashboardScreen> {
         ),
         iconTheme: const IconThemeData(color: Color(0xFF00E0A6)),
       ),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            children: [
-              // Eliminada barra de entrada de año/hora
-              Expanded(
-                child: GridView.count(
-                  crossAxisCount: screenWidth < 360
-                      ? 1
-                      : (screenWidth < 768 ? 2 : 3),
-                  crossAxisSpacing: 12,
-                  mainAxisSpacing: 12,
-                  childAspectRatio: aspect,
-                  children: [
-                    SensorCardWithImage(
-                      key: const ValueKey('sensor-card-temperatura'),
-                      titulo: "TEMPERATURA",
-                      imagePath: "assets/images/sensor_dashboard/s_temp.png",
-                      onTap: () => _abrirSensor("temperatura", "Temperatura"),
-                    ),
-                    SensorCardWithImage(
-                      key: const ValueKey('sensor-card-humedad'),
-                      titulo: "HUMEDAD",
-                      imagePath: "assets/images/sensor_dashboard/s_humedad.png",
-                      onTap: () => _abrirSensor("humedad", "Humedad"),
-                    ),
-                    SensorCardWithImage(
-                      key: const ValueKey('sensor-card-ph'),
-                      titulo: "PH",
-                      imagePath: "assets/images/sensor_dashboard/s_ph.png",
-                      onTap: () => _abrirSensor("ph", "pH"),
-                    ),
-                    SensorCardWithImage(
-                      key: const ValueKey('sensor-card-tds'),
-                      titulo: "TDS",
-                      imagePath: "assets/images/sensor_dashboard/s_tds.png",
-                      onTap: () => _abrirSensor("tds", "TDS"),
-                    ),
-                    SensorCardWithImage(
-                      key: const ValueKey('sensor-card-uv'),
-                      titulo: "UV",
-                      imagePath: "assets/images/sensor_dashboard/s_uv.png",
-                      onTap: () => _abrirSensor("uv", "UV"),
-                    ),
-                  ],
+      body: Container(
+        decoration: AppStyles.internalScreenBackground,
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              children: [
+                // Eliminada barra de entrada de año/hora
+                Expanded(
+                  child: GridView.count(
+                    crossAxisCount: screenWidth < 360
+                        ? 1
+                        : (screenWidth < 768 ? 2 : 3),
+                    crossAxisSpacing: 12,
+                    mainAxisSpacing: 12,
+                    childAspectRatio: aspect,
+                    children: [
+                      SensorCardWithImage(
+                        key: const ValueKey('sensor-card-temperatura'),
+                        titulo: "TEMPERATURA",
+                        imagePath: "assets/images/sensor_dashboard/s_temp.png",
+                        onTap: () => _abrirSensor("temperatura", "Temperatura"),
+                      ),
+                      SensorCardWithImage(
+                        key: const ValueKey('sensor-card-humedad'),
+                        titulo: "HUMEDAD",
+                        imagePath:
+                            "assets/images/sensor_dashboard/s_humedad.png",
+                        onTap: () => _abrirSensor("humedad", "Humedad"),
+                      ),
+                      SensorCardWithImage(
+                        key: const ValueKey('sensor-card-ph'),
+                        titulo: "PH",
+                        imagePath: "assets/images/sensor_dashboard/s_ph.png",
+                        onTap: () => _abrirSensor("ph", "pH"),
+                      ),
+                      SensorCardWithImage(
+                        key: const ValueKey('sensor-card-tds'),
+                        titulo: "TDS",
+                        imagePath: "assets/images/sensor_dashboard/s_tds.png",
+                        onTap: () => _abrirSensor("tds", "TDS"),
+                      ),
+                      SensorCardWithImage(
+                        key: const ValueKey('sensor-card-uv'),
+                        titulo: "UV",
+                        imagePath: "assets/images/sensor_dashboard/s_uv.png",
+                        onTap: () => _abrirSensor("uv", "UV"),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -468,11 +474,8 @@ class _SensorCardWithImageState extends State<SensorCardWithImage> {
                               width: double.infinity,
                               child: Text(
                                 widget.titulo,
-                                style: TextStyle(
+                                style: AppStyles.sectionSubtitle.copyWith(
                                   color: Colors.white,
-                                  fontWeight: FontWeight.w700,
-                                  fontSize: 14,
-                                  letterSpacing: 0.1,
                                   shadows: [
                                     Shadow(
                                       color: accentColor.withValues(

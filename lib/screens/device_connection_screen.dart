@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import '../styles/app_styles.dart';
 import 'device_config_screen.dart';
 
 class DeviceConnectionScreen extends StatefulWidget {
@@ -36,21 +38,25 @@ class _DeviceConnectionScreenState extends State<DeviceConnectionScreen> {
           ),
         ),
       ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(12.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildConnectionStatus(),
-              const SizedBox(height: 16),
-              _buildIpConfigButton(),
-              const SizedBox(height: 16),
-              _buildConnectionStatistics(),
-              const SizedBox(
-                height: 16,
-              ), // Espacio adicional para evitar overflow
-            ],
+      backgroundColor: Colors.transparent,
+      body: Container(
+        decoration: AppStyles.internalScreenBackground,
+        child: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(12.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildConnectionStatus(),
+                const SizedBox(height: 16),
+                _buildIpConfigButton(),
+                const SizedBox(height: 16),
+                _buildConnectionStatistics(),
+                const SizedBox(
+                  height: 16,
+                ), // Espacio adicional para evitar overflow
+              ],
+            ),
           ),
         ),
       ),
@@ -73,8 +79,8 @@ class _DeviceConnectionScreenState extends State<DeviceConnectionScreen> {
                 ), // Verde oscuro
                 const SizedBox(width: 8),
                 const Text(
-                  'Estado de Conexión Principal',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  'ESTADO DE CONEXIÓN PRINCIPAL',
+                  style: AppStyles.sectionSubtitle,
                 ),
               ],
             ),
@@ -155,8 +161,8 @@ class _DeviceConnectionScreenState extends State<DeviceConnectionScreen> {
                 ), // Verde oscuro
                 const SizedBox(width: 8),
                 const Text(
-                  'Estadísticas de Conexión',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  'ESTADÍSTICAS DE CONEXIÓN',
+                  style: AppStyles.sectionSubtitle,
                 ),
               ],
             ),

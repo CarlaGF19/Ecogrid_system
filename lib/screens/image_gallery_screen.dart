@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'image_detail_screen.dart';
 import '../models/image_data.dart';
+import '../styles/app_styles.dart';
 import '../widgets/bottom_navigation_widget.dart';
 
 class ImageGalleryScreen extends StatefulWidget {
@@ -190,13 +191,7 @@ class _ImageGalleryScreenState extends State<ImageGalleryScreen> {
     return Scaffold(
       extendBody: true, // For glassmorphism bottom nav if needed
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [_bgTop, _bgBottom],
-          ),
-        ),
+        decoration: AppStyles.internalScreenBackground,
         child: SafeArea(
           bottom: false,
           child: Column(
@@ -223,6 +218,13 @@ class _ImageGalleryScreenState extends State<ImageGalleryScreen> {
               const SizedBox(height: 24),
 
               // 🔍 FILTER SECTION (Single Glass Card)
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                child: Text(
+                  'FILTROS DE BÚSQUEDA',
+                  style: AppStyles.sectionSubtitle,
+                ),
+              ),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: ClipRRect(

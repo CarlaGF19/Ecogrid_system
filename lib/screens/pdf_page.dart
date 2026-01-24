@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
+import '../styles/app_styles.dart';
 import 'dart:convert';
 import 'dart:ui' as ui;
 import 'dart:math' as math;
@@ -556,323 +557,335 @@ class _PDFPageState extends State<PDFPage> {
     const Color verdeSombra = Color(0xFF4CAF50); // Verde 500 - para sombras
 
     return Scaffold(
-      backgroundColor: Colors.white,
-      body: Column(
-        children: [
-          // Header con diseño consistente al Main Menu
-          _buildPDFHeader(),
+      body: Container(
+        decoration: AppStyles.internalScreenBackground,
+        child: Column(
+          children: [
+            // Header con diseño consistente al Main Menu
+            _buildPDFHeader(),
 
-          // Contenido principal
-          Expanded(
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                final bool isSmall = constraints.maxWidth < 480;
+            // Contenido principal
+            Expanded(
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final bool isSmall = constraints.maxWidth < 480;
 
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    // Espaciador superior
-                    const SizedBox(height: 24),
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      // Espaciador superior
+                      const SizedBox(height: 24),
 
-                    // Contenedor principal centrado con diseño verde
-                    Container(
-                      width: math.min(constraints.maxWidth * 0.9, 800),
-                      margin: const EdgeInsets.symmetric(horizontal: 16),
-                      padding: EdgeInsets.all(isSmall ? 20 : 32),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: [
-                          BoxShadow(
-                            color: verdeSombra.withValues(alpha: 0.15),
-                            spreadRadius: 2,
-                            blurRadius: 15,
-                            offset: const Offset(0, 8),
+                      // Contenedor principal centrado con diseño verde
+                      Container(
+                        width: math.min(constraints.maxWidth * 0.9, 800),
+                        margin: const EdgeInsets.symmetric(horizontal: 16),
+                        padding: EdgeInsets.all(isSmall ? 20 : 32),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: verdeSombra.withValues(alpha: 0.15),
+                              spreadRadius: 2,
+                              blurRadius: 15,
+                              offset: const Offset(0, 8),
+                            ),
+                          ],
+                          border: Border.all(
+                            color: verdeClaro.withValues(alpha: 0.3),
+                            width: 1,
                           ),
-                        ],
-                        border: Border.all(
-                          color: verdeClaro.withValues(alpha: 0.3),
-                          width: 1,
                         ),
-                      ),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          // Contenedor de botones con estilo verde
-                          cargando
-                              ? const CircularProgressIndicator(
-                                  valueColor: AlwaysStoppedAnimation<Color>(
-                                    verdePrincipal,
-                                  ),
-                                )
-                              : Column(
-                                  children: [
-                                    _ButtonContainer(
-                                      children: [
-                                        _StyledButton(
-                                          label: fechaInicio == null
-                                              ? 'Fecha de Inicio'
-                                              : '${fechaInicio!.year.toString().padLeft(4, '0')}-${fechaInicio!.month.toString().padLeft(2, '0')}-${fechaInicio!.day.toString().padLeft(2, '0')}',
-                                          onTap: seleccionarFechaInicio,
-                                          key: const ValueKey('btn-start-date'),
-                                          semanticLabel:
-                                              'Seleccionar fecha inicio',
-                                          icon: Icons.calendar_today,
-                                          enabled: !platform.isAndroidWeb(),
-                                        ),
-                                        _StyledButton(
-                                          label: fechaFin == null
-                                              ? 'Fecha de Fin'
-                                              : '${fechaFin!.year.toString().padLeft(4, '0')}-${fechaFin!.month.toString().padLeft(2, '0')}-${fechaFin!.day.toString().padLeft(2, '0')}',
-                                          onTap: seleccionarFechaFin,
-                                          key: const ValueKey('btn-end-date'),
-                                          semanticLabel:
-                                              'Seleccionar fecha fin',
-                                          icon: Icons.calendar_today,
-                                          enabled: !platform.isAndroidWeb(),
-                                        ),
-                                      ],
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            // Contenedor de botones con estilo verde
+                            cargando
+                                ? const CircularProgressIndicator(
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                      verdePrincipal,
                                     ),
-
-                                    const SizedBox(height: 24),
-
-                                    // Selector de Formato
-                                    Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 20,
-                                        vertical: 8,
+                                  )
+                                : Column(
+                                    children: [
+                                      _ButtonContainer(
+                                        children: [
+                                          _StyledButton(
+                                            label: fechaInicio == null
+                                                ? 'Fecha de Inicio'
+                                                : '${fechaInicio!.year.toString().padLeft(4, '0')}-${fechaInicio!.month.toString().padLeft(2, '0')}-${fechaInicio!.day.toString().padLeft(2, '0')}',
+                                            onTap: seleccionarFechaInicio,
+                                            key: const ValueKey(
+                                              'btn-start-date',
+                                            ),
+                                            semanticLabel:
+                                                'Seleccionar fecha inicio',
+                                            icon: Icons.calendar_today,
+                                            enabled: !platform.isAndroidWeb(),
+                                          ),
+                                          _StyledButton(
+                                            label: fechaFin == null
+                                                ? 'Fecha de Fin'
+                                                : '${fechaFin!.year.toString().padLeft(4, '0')}-${fechaFin!.month.toString().padLeft(2, '0')}-${fechaFin!.day.toString().padLeft(2, '0')}',
+                                            onTap: seleccionarFechaFin,
+                                            key: const ValueKey('btn-end-date'),
+                                            semanticLabel:
+                                                'Seleccionar fecha fin',
+                                            icon: Icons.calendar_today,
+                                            enabled: !platform.isAndroidWeb(),
+                                          ),
+                                        ],
                                       ),
-                                      child: Align(
-                                        alignment: Alignment.centerLeft,
-                                        child: Text(
-                                          'Formato de reporte',
-                                          style: TextStyle(
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.w600,
-                                            color: verdeOscuro,
+
+                                      const SizedBox(height: 24),
+
+                                      // Selector de Formato
+                                      Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 20,
+                                          vertical: 8,
+                                        ),
+                                        child: Align(
+                                          alignment: Alignment.centerLeft,
+                                          child: Text(
+                                            'Formato de reporte',
+                                            style: TextStyle(
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.w600,
+                                              color: verdeOscuro,
+                                            ),
                                           ),
                                         ),
                                       ),
-                                    ),
-                                    Container(
-                                      margin: const EdgeInsets.symmetric(
-                                        horizontal: 16,
-                                      ),
-                                      child: Row(
-                                        children: [
-                                          Expanded(
-                                            child: GestureDetector(
-                                              onTap: () => setState(
-                                                () => _selectedFormat = 'PDF',
-                                              ),
-                                              child: AnimatedContainer(
-                                                duration: const Duration(
-                                                  milliseconds: 200,
+                                      Container(
+                                        margin: const EdgeInsets.symmetric(
+                                          horizontal: 16,
+                                        ),
+                                        child: Row(
+                                          children: [
+                                            Expanded(
+                                              child: GestureDetector(
+                                                onTap: () => setState(
+                                                  () => _selectedFormat = 'PDF',
                                                 ),
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                                      vertical: 12,
-                                                    ),
-                                                decoration: BoxDecoration(
-                                                  color:
-                                                      _selectedFormat == 'PDF'
-                                                      ? verdePrincipal
-                                                      : Colors.white,
-                                                  borderRadius:
-                                                      BorderRadius.circular(8),
-                                                  border: Border.all(
+                                                child: AnimatedContainer(
+                                                  duration: const Duration(
+                                                    milliseconds: 200,
+                                                  ),
+                                                  padding:
+                                                      const EdgeInsets.symmetric(
+                                                        vertical: 12,
+                                                      ),
+                                                  decoration: BoxDecoration(
                                                     color:
                                                         _selectedFormat == 'PDF'
                                                         ? verdePrincipal
-                                                        : verdeClaro,
-                                                    width: 1,
-                                                  ),
-                                                ),
-                                                child: Row(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment.center,
-                                                  children: [
-                                                    Icon(
-                                                      Icons.picture_as_pdf,
+                                                        : Colors.white,
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          8,
+                                                        ),
+                                                    border: Border.all(
                                                       color:
                                                           _selectedFormat ==
                                                               'PDF'
-                                                          ? Colors.white
-                                                          : verdePrincipal,
-                                                      size: 20,
+                                                          ? verdePrincipal
+                                                          : verdeClaro,
+                                                      width: 1,
                                                     ),
-                                                    const SizedBox(width: 8),
-                                                    Text(
-                                                      'PDF',
-                                                      style: TextStyle(
+                                                  ),
+                                                  child: Row(
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment
+                                                            .center,
+                                                    children: [
+                                                      Icon(
+                                                        Icons.picture_as_pdf,
                                                         color:
                                                             _selectedFormat ==
                                                                 'PDF'
                                                             ? Colors.white
                                                             : verdePrincipal,
-                                                        fontWeight:
-                                                            FontWeight.bold,
+                                                        size: 20,
                                                       ),
-                                                    ),
-                                                  ],
+                                                      const SizedBox(width: 8),
+                                                      Text(
+                                                        'PDF',
+                                                        style: TextStyle(
+                                                          color:
+                                                              _selectedFormat ==
+                                                                  'PDF'
+                                                              ? Colors.white
+                                                              : verdePrincipal,
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
                                                 ),
                                               ),
                                             ),
-                                          ),
-                                          const SizedBox(width: 12),
-                                          Expanded(
-                                            child: GestureDetector(
-                                              onTap: () => setState(
-                                                () => _selectedFormat = 'CSV',
-                                              ),
-                                              child: AnimatedContainer(
-                                                duration: const Duration(
-                                                  milliseconds: 200,
+                                            const SizedBox(width: 12),
+                                            Expanded(
+                                              child: GestureDetector(
+                                                onTap: () => setState(
+                                                  () => _selectedFormat = 'CSV',
                                                 ),
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                                      vertical: 12,
-                                                    ),
-                                                decoration: BoxDecoration(
-                                                  color:
-                                                      _selectedFormat == 'CSV'
-                                                      ? verdePrincipal
-                                                      : Colors.white,
-                                                  borderRadius:
-                                                      BorderRadius.circular(8),
-                                                  border: Border.all(
+                                                child: AnimatedContainer(
+                                                  duration: const Duration(
+                                                    milliseconds: 200,
+                                                  ),
+                                                  padding:
+                                                      const EdgeInsets.symmetric(
+                                                        vertical: 12,
+                                                      ),
+                                                  decoration: BoxDecoration(
                                                     color:
                                                         _selectedFormat == 'CSV'
                                                         ? verdePrincipal
-                                                        : verdeClaro,
-                                                    width: 1,
-                                                  ),
-                                                ),
-                                                child: Row(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment.center,
-                                                  children: [
-                                                    Icon(
-                                                      Icons.table_chart,
+                                                        : Colors.white,
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          8,
+                                                        ),
+                                                    border: Border.all(
                                                       color:
                                                           _selectedFormat ==
                                                               'CSV'
-                                                          ? Colors.white
-                                                          : verdePrincipal,
-                                                      size: 20,
+                                                          ? verdePrincipal
+                                                          : verdeClaro,
+                                                      width: 1,
                                                     ),
-                                                    const SizedBox(width: 8),
-                                                    Text(
-                                                      'CSV',
-                                                      style: TextStyle(
+                                                  ),
+                                                  child: Row(
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment
+                                                            .center,
+                                                    children: [
+                                                      Icon(
+                                                        Icons.table_chart,
                                                         color:
                                                             _selectedFormat ==
                                                                 'CSV'
                                                             ? Colors.white
                                                             : verdePrincipal,
-                                                        fontWeight:
-                                                            FontWeight.bold,
+                                                        size: 20,
                                                       ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    Padding(
-                                      padding: const EdgeInsets.only(
-                                        left: 20,
-                                        top: 8,
-                                        bottom: 24,
-                                      ),
-                                      child: Align(
-                                        alignment: Alignment.centerLeft,
-                                        child: Text(
-                                          _selectedFormat == 'PDF'
-                                              ? 'Ideal para imprimir y compartir'
-                                              : 'Ideal para Excel y análisis',
-                                          style: TextStyle(
-                                            fontSize: 12,
-                                            color: Colors.grey[600],
-                                            fontStyle: FontStyle.italic,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-
-                                    // Botón CTA Descargar
-                                    Container(
-                                      margin: const EdgeInsets.symmetric(
-                                        horizontal: 16,
-                                      ),
-                                      width: double.infinity,
-                                      child: _StyledButton(
-                                        label: 'Descargar',
-                                        onTap: _fechasValidas
-                                            ? generarReporte
-                                            : null,
-                                        key: const ValueKey('btn-download'),
-                                        semanticLabel: 'Descargar Reporte',
-                                        enabled:
-                                            _fechasValidas &&
-                                            !platform.isAndroidWeb(),
-                                        icon: Icons.download,
-                                      ),
-                                    ),
-
-                                    if (error != null) ...[
-                                      const SizedBox(height: 20),
-                                      Container(
-                                        padding: const EdgeInsets.all(16),
-                                        decoration: BoxDecoration(
-                                          color: Colors.red.shade50,
-                                          borderRadius: BorderRadius.circular(
-                                            8,
-                                          ),
-                                          border: Border.all(
-                                            color: Colors.red.shade200,
-                                            width: 1,
-                                          ),
-                                        ),
-                                        child: Row(
-                                          children: [
-                                            Icon(
-                                              Icons.error_outline,
-                                              color: Colors.red.shade600,
-                                              size: 20,
-                                            ),
-                                            const SizedBox(width: 12),
-                                            Expanded(
-                                              child: Text(
-                                                error!,
-                                                style: TextStyle(
-                                                  color: Colors.red.shade700,
-                                                  fontSize: 14,
-                                                  fontWeight: FontWeight.w500,
+                                                      const SizedBox(width: 8),
+                                                      Text(
+                                                        'CSV',
+                                                        style: TextStyle(
+                                                          color:
+                                                              _selectedFormat ==
+                                                                  'CSV'
+                                                              ? Colors.white
+                                                              : verdePrincipal,
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
                                                 ),
                                               ),
                                             ),
                                           ],
                                         ),
                                       ),
-                                    ],
-                                  ],
-                                ),
-                        ],
-                      ),
-                    ),
+                                      Padding(
+                                        padding: const EdgeInsets.only(
+                                          left: 20,
+                                          top: 8,
+                                          bottom: 24,
+                                        ),
+                                        child: Align(
+                                          alignment: Alignment.centerLeft,
+                                          child: Text(
+                                            _selectedFormat == 'PDF'
+                                                ? 'Ideal para imprimir y compartir'
+                                                : 'Ideal para Excel y análisis',
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              color: Colors.grey[600],
+                                              fontStyle: FontStyle.italic,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
 
-                    // Espaciador inferior flexible
-                    const Spacer(),
-                  ],
-                );
-              },
+                                      // Botón CTA Descargar
+                                      Container(
+                                        margin: const EdgeInsets.symmetric(
+                                          horizontal: 16,
+                                        ),
+                                        width: double.infinity,
+                                        child: _StyledButton(
+                                          label: 'Descargar',
+                                          onTap: _fechasValidas
+                                              ? generarReporte
+                                              : null,
+                                          key: const ValueKey('btn-download'),
+                                          semanticLabel: 'Descargar Reporte',
+                                          enabled:
+                                              _fechasValidas &&
+                                              !platform.isAndroidWeb(),
+                                          icon: Icons.download,
+                                        ),
+                                      ),
+
+                                      if (error != null) ...[
+                                        const SizedBox(height: 20),
+                                        Container(
+                                          padding: const EdgeInsets.all(16),
+                                          decoration: BoxDecoration(
+                                            color: Colors.red.shade50,
+                                            borderRadius: BorderRadius.circular(
+                                              8,
+                                            ),
+                                            border: Border.all(
+                                              color: Colors.red.shade200,
+                                              width: 1,
+                                            ),
+                                          ),
+                                          child: Row(
+                                            children: [
+                                              Icon(
+                                                Icons.error_outline,
+                                                color: Colors.red.shade600,
+                                                size: 20,
+                                              ),
+                                              const SizedBox(width: 12),
+                                              Expanded(
+                                                child: Text(
+                                                  error!,
+                                                  style: TextStyle(
+                                                    color: Colors.red.shade700,
+                                                    fontSize: 14,
+                                                    fontWeight: FontWeight.w500,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ],
+                                  ),
+                          ],
+                        ),
+                      ),
+
+                      // Espaciador inferior flexible
+                      const Spacer(),
+                    ],
+                  );
+                },
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

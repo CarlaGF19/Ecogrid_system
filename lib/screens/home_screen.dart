@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import '../styles/app_styles.dart';
 import '../widgets/bottom_navigation_widget.dart';
 import 'pdf_page.dart';
 
@@ -46,13 +47,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       extendBody: true,
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Colors.white, Color(0xFFF1FBF9)],
-          ),
-        ),
+        decoration: AppStyles.internalScreenBackground,
         child: SafeArea(
           child: SingleChildScrollView(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
@@ -64,13 +59,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 _buildTopAccessCard(),
                 const SizedBox(height: 32),
                 const Text(
-                  'Sensores Anclados',
-                  style: TextStyle(
-                    color: _forestGreenText,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: -0.5,
-                  ),
+                  'SENSORES ANCLADOS',
+                  style: AppStyles.sectionSubtitle,
                 ),
                 const SizedBox(height: 16),
                 _buildSensorGrid(),
@@ -181,11 +171,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                           Text(
                             'Acceso al menú principal',
-                            style: TextStyle(
-                              color: _softGrey,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w500,
-                            ),
+                            style: AppStyles.helperText,
                           ),
                         ],
                       ),
@@ -579,14 +565,7 @@ class _HomeScreenState extends State<HomeScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text(
-              'Imágenes Favoritas',
-              style: TextStyle(
-                color: _forestGreenText,
-                fontSize: 18,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
+            const Text('IMÁGENES FAVORITAS', style: AppStyles.sectionSubtitle),
             TextButton(
               onPressed: () {},
               child: const Text(

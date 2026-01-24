@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import '../styles/app_styles.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../widgets/bottom_navigation_widget.dart';
@@ -207,15 +208,7 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
   Widget _buildSectionHeader(String title) {
     return Padding(
       padding: const EdgeInsets.only(left: 12, bottom: 8, top: 24),
-      child: Text(
-        title.toUpperCase(),
-        style: GoogleFonts.inter(
-          fontSize: 12,
-          fontWeight: FontWeight.w700,
-          color: _textMain.withValues(alpha: 0.6),
-          letterSpacing: 1.0,
-        ),
-      ),
+      child: Text(title.toUpperCase(), style: AppStyles.sectionSubtitle),
     );
   }
 

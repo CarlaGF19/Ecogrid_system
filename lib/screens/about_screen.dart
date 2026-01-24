@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../constants/strings.dart';
+import '../styles/app_styles.dart';
 
 // Tipografías se tomarán del Theme para mantener consistencia
 
@@ -46,44 +47,48 @@ class _AboutScreenState extends State<AboutScreen> {
         ),
         elevation: 0,
       ),
-      backgroundColor: ecoWhite,
-      body: SafeArea(
-        child: AnimatedOpacity(
-          opacity: _visible ? 1 : 0,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeInOut,
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              final isWide = constraints.maxWidth >= 900;
-              final horizontalPadding = isWide ? 24.0 : 16.0;
-              return SingleChildScrollView(
-                padding: EdgeInsets.symmetric(
-                  horizontal: horizontalPadding,
-                  vertical: 16,
-                ),
-                child: Center(
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 840),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        _buildHeader(),
-                        const SizedBox(height: 16),
-                        _buildProjectDescription(),
-                        const SizedBox(height: 16),
-                        _buildTechnicalSpecs(),
-                        const SizedBox(height: 16),
-                        _buildFeatures(theme),
-                        const SizedBox(height: 16),
-                        _buildVersionInfo(),
-                        const SizedBox(height: 16),
-                        _buildCopyrightLicense(),
-                      ],
+      backgroundColor: Colors
+          .transparent, // Transparent to show gradient if needed, but we wrap body
+      body: Container(
+        decoration: AppStyles.internalScreenBackground,
+        child: SafeArea(
+          child: AnimatedOpacity(
+            opacity: _visible ? 1 : 0,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final isWide = constraints.maxWidth >= 900;
+                final horizontalPadding = isWide ? 24.0 : 16.0;
+                return SingleChildScrollView(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: horizontalPadding,
+                    vertical: 16,
+                  ),
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 840),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          _buildHeader(),
+                          const SizedBox(height: 16),
+                          _buildProjectDescription(),
+                          const SizedBox(height: 16),
+                          _buildTechnicalSpecs(),
+                          const SizedBox(height: 16),
+                          _buildFeatures(theme),
+                          const SizedBox(height: 16),
+                          _buildVersionInfo(),
+                          const SizedBox(height: 16),
+                          _buildCopyrightLicense(),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-              );
-            },
+                );
+              },
+            ),
           ),
         ),
       ),
@@ -156,11 +161,8 @@ class _AboutScreenState extends State<AboutScreen> {
                 const Icon(Icons.description, color: ecoCyan),
                 const SizedBox(width: 8),
                 Text(
-                  Strings.projectDescriptionTitle,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    color: ecoDark,
-                    fontWeight: FontWeight.w600,
-                  ),
+                  Strings.projectDescriptionTitle.toUpperCase(),
+                  style: AppStyles.sectionSubtitle,
                 ),
               ],
             ),
@@ -392,15 +394,8 @@ class _AboutScreenState extends State<AboutScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Copyright',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: ecoDark,
-              ),
-            ),
-            SizedBox(height: 8),
+            const Text('COPYRIGHT', style: AppStyles.sectionSubtitle),
+            const SizedBox(height: 8),
             Text(
               '© 2025 EcoGrid. Todos los derechos reservados.',
               style: TextStyle(color: ecoDark),

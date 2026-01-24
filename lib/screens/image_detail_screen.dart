@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../styles/app_styles.dart';
 import '../models/image_data.dart';
 
 class ImageDetailScreen extends StatefulWidget {
@@ -151,7 +152,7 @@ class _ImageDetailScreenState extends State<ImageDetailScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: Colors.transparent,
       extendBodyBehindAppBar: true,
       appBar: _showAppBar
           ? AppBar(
@@ -189,36 +190,34 @@ class _ImageDetailScreenState extends State<ImageDetailScreen> {
               ],
             )
           : null,
-      body: GestureDetector(
-        onTap: _toggleBars,
-        child: Center(
-          child: InteractiveViewer(
-            transformationController: _transformationController,
-            minScale: 0.5,
-            maxScale: 4.0,
-            child: Container(
-              width: double.infinity,
-              height: double.infinity,
-              decoration: BoxDecoration(color: Colors.grey.shade200),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.image, size: 120, color: Colors.grey.shade400),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Imagen ESP32',
-                    style: TextStyle(
-                      fontSize: 18,
-                      color: Colors.grey.shade600,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    _formatFullDateTime(widget.image.timestamp),
-                    style: TextStyle(fontSize: 14, color: Colors.grey.shade500),
-                  ),
-                ],
+      body: Container(
+        decoration: AppStyles.internalScreenBackground,
+        child: GestureDetector(
+          onTap: _toggleBars,
+          child: SafeArea(
+            child: Center(
+              child: InteractiveViewer(
+                transformationController: _transformationController,
+                minScale: 0.5,
+                maxScale: 4.0,
+                child: Image.asset(
+                  widget.image.imageUrl,
+                  fit: BoxFit.contain,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.broken_image,
+                          size: 80,
+                          color: Colors.grey.shade400,
+                        ),
+                        const SizedBox(height: 16),
+                        const Text("Error al cargar imagen"),
+                      ],
+                    );
+                  },
+                ),
               ),
             ),
           ),
@@ -227,7 +226,7 @@ class _ImageDetailScreenState extends State<ImageDetailScreen> {
       bottomNavigationBar: _showBottomBar
           ? Container(
               decoration: BoxDecoration(
-                color: Colors.black.withValues(alpha: 0.7),
+                color: Colors.white.withValues(alpha: 0.9),
               ),
               child: SafeArea(
                 child: Padding(
@@ -278,7 +277,7 @@ class _ImageDetailScreenState extends State<ImageDetailScreen> {
     required VoidCallback onPressed,
     Color? color,
   }) {
-    final buttonColor = color ?? Colors.white;
+    final buttonColor = color ?? const Color(0xFF004C3F);
 
     return InkWell(
       onTap: onPressed,
